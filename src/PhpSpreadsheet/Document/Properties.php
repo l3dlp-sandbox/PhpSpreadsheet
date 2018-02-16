@@ -2,28 +2,6 @@
 
 namespace PhpOffice\PhpSpreadsheet\Document;
 
-/**
- * Copyright (c) 2006 - 2016 PhpSpreadsheet
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * @category    PhpSpreadsheet
- * @copyright    Copyright (c) 2006 - 2016 PhpSpreadsheet (https://github.com/PHPOffice/PhpSpreadsheet)
- * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt    LGPL
- * @version    ##VERSION##, ##DATE##
- */
 class Properties
 {
     /** constants */
@@ -35,91 +13,91 @@ class Properties
     const PROPERTY_TYPE_UNKNOWN = 'u';
 
     /**
-     * Creator
+     * Creator.
      *
      * @var string
      */
     private $creator = 'Unknown Creator';
 
     /**
-     * LastModifiedBy
+     * LastModifiedBy.
      *
      * @var string
      */
     private $lastModifiedBy;
 
     /**
-     * Created
+     * Created.
      *
      * @var int
      */
     private $created;
 
     /**
-     * Modified
+     * Modified.
      *
      * @var int
      */
     private $modified;
 
     /**
-     * Title
+     * Title.
      *
      * @var string
      */
     private $title = 'Untitled Spreadsheet';
 
     /**
-     * Description
+     * Description.
      *
      * @var string
      */
     private $description = '';
 
     /**
-     * Subject
+     * Subject.
      *
      * @var string
      */
     private $subject = '';
 
     /**
-     * Keywords
+     * Keywords.
      *
      * @var string
      */
     private $keywords = '';
 
     /**
-     * Category
+     * Category.
      *
      * @var string
      */
     private $category = '';
 
     /**
-     * Manager
+     * Manager.
      *
      * @var string
      */
     private $manager = '';
 
     /**
-     * Company
+     * Company.
      *
      * @var string
      */
     private $company = 'Microsoft Corporation';
 
     /**
-     * Custom Properties
+     * Custom Properties.
      *
      * @var string
      */
     private $customProperties = [];
 
     /**
-     * Create a new Document Properties instance
+     * Create a new Document Properties instance.
      */
     public function __construct()
     {
@@ -130,7 +108,7 @@ class Properties
     }
 
     /**
-     * Get Creator
+     * Get Creator.
      *
      * @return string
      */
@@ -140,20 +118,21 @@ class Properties
     }
 
     /**
-     * Set Creator
+     * Set Creator.
      *
-     * @param string $pValue
+     * @param string $creator
+     *
      * @return Properties
      */
-    public function setCreator($pValue = '')
+    public function setCreator($creator)
     {
-        $this->creator = $pValue;
+        $this->creator = $creator;
 
         return $this;
     }
 
     /**
-     * Get Last Modified By
+     * Get Last Modified By.
      *
      * @return string
      */
@@ -163,12 +142,13 @@ class Properties
     }
 
     /**
-     * Set Last Modified By
+     * Set Last Modified By.
      *
      * @param string $pValue
+     *
      * @return Properties
      */
-    public function setLastModifiedBy($pValue = '')
+    public function setLastModifiedBy($pValue)
     {
         $this->lastModifiedBy = $pValue;
 
@@ -176,7 +156,7 @@ class Properties
     }
 
     /**
-     * Get Created
+     * Get Created.
      *
      * @return int
      */
@@ -186,30 +166,31 @@ class Properties
     }
 
     /**
-     * Set Created
+     * Set Created.
      *
-     * @param datetime $pValue
+     * @param int|string $time
+     *
      * @return Properties
      */
-    public function setCreated($pValue = null)
+    public function setCreated($time)
     {
-        if ($pValue === null) {
-            $pValue = time();
-        } elseif (is_string($pValue)) {
-            if (is_numeric($pValue)) {
-                $pValue = intval($pValue);
+        if ($time === null) {
+            $time = time();
+        } elseif (is_string($time)) {
+            if (is_numeric($time)) {
+                $time = (int) $time;
             } else {
-                $pValue = strtotime($pValue);
+                $time = strtotime($time);
             }
         }
 
-        $this->created = $pValue;
+        $this->created = $time;
 
         return $this;
     }
 
     /**
-     * Get Modified
+     * Get Modified.
      *
      * @return int
      */
@@ -219,30 +200,31 @@ class Properties
     }
 
     /**
-     * Set Modified
+     * Set Modified.
      *
-     * @param datetime $pValue
+     * @param int|string $time
+     *
      * @return Properties
      */
-    public function setModified($pValue = null)
+    public function setModified($time)
     {
-        if ($pValue === null) {
-            $pValue = time();
-        } elseif (is_string($pValue)) {
-            if (is_numeric($pValue)) {
-                $pValue = intval($pValue);
+        if ($time === null) {
+            $time = time();
+        } elseif (is_string($time)) {
+            if (is_numeric($time)) {
+                $time = (int) $time;
             } else {
-                $pValue = strtotime($pValue);
+                $time = strtotime($time);
             }
         }
 
-        $this->modified = $pValue;
+        $this->modified = $time;
 
         return $this;
     }
 
     /**
-     * Get Title
+     * Get Title.
      *
      * @return string
      */
@@ -252,20 +234,21 @@ class Properties
     }
 
     /**
-     * Set Title
+     * Set Title.
      *
-     * @param string $pValue
+     * @param string $title
+     *
      * @return Properties
      */
-    public function setTitle($pValue = '')
+    public function setTitle($title)
     {
-        $this->title = $pValue;
+        $this->title = $title;
 
         return $this;
     }
 
     /**
-     * Get Description
+     * Get Description.
      *
      * @return string
      */
@@ -275,20 +258,21 @@ class Properties
     }
 
     /**
-     * Set Description
+     * Set Description.
      *
-     * @param string $pValue
+     * @param string $description
+     *
      * @return Properties
      */
-    public function setDescription($pValue = '')
+    public function setDescription($description)
     {
-        $this->description = $pValue;
+        $this->description = $description;
 
         return $this;
     }
 
     /**
-     * Get Subject
+     * Get Subject.
      *
      * @return string
      */
@@ -298,20 +282,21 @@ class Properties
     }
 
     /**
-     * Set Subject
+     * Set Subject.
      *
-     * @param string $pValue
+     * @param string $subject
+     *
      * @return Properties
      */
-    public function setSubject($pValue = '')
+    public function setSubject($subject)
     {
-        $this->subject = $pValue;
+        $this->subject = $subject;
 
         return $this;
     }
 
     /**
-     * Get Keywords
+     * Get Keywords.
      *
      * @return string
      */
@@ -321,20 +306,21 @@ class Properties
     }
 
     /**
-     * Set Keywords
+     * Set Keywords.
      *
-     * @param string $pValue
+     * @param string $keywords
+     *
      * @return Properties
      */
-    public function setKeywords($pValue = '')
+    public function setKeywords($keywords)
     {
-        $this->keywords = $pValue;
+        $this->keywords = $keywords;
 
         return $this;
     }
 
     /**
-     * Get Category
+     * Get Category.
      *
      * @return string
      */
@@ -344,20 +330,21 @@ class Properties
     }
 
     /**
-     * Set Category
+     * Set Category.
      *
-     * @param string $pValue
+     * @param string $category
+     *
      * @return Properties
      */
-    public function setCategory($pValue = '')
+    public function setCategory($category)
     {
-        $this->category = $pValue;
+        $this->category = $category;
 
         return $this;
     }
 
     /**
-     * Get Company
+     * Get Company.
      *
      * @return string
      */
@@ -367,20 +354,21 @@ class Properties
     }
 
     /**
-     * Set Company
+     * Set Company.
      *
-     * @param string $pValue
+     * @param string $company
+     *
      * @return Properties
      */
-    public function setCompany($pValue = '')
+    public function setCompany($company)
     {
-        $this->company = $pValue;
+        $this->company = $company;
 
         return $this;
     }
 
     /**
-     * Get Manager
+     * Get Manager.
      *
      * @return string
      */
@@ -390,20 +378,21 @@ class Properties
     }
 
     /**
-     * Set Manager
+     * Set Manager.
      *
-     * @param string $pValue
+     * @param string $manager
+     *
      * @return Properties
      */
-    public function setManager($pValue = '')
+    public function setManager($manager)
     {
-        $this->manager = $pValue;
+        $this->manager = $manager;
 
         return $this;
     }
 
     /**
-     * Get a List of Custom Property Names
+     * Get a List of Custom Property Names.
      *
      * @return array of string
      */
@@ -413,9 +402,10 @@ class Properties
     }
 
     /**
-     * Check if a Custom Property is defined
+     * Check if a Custom Property is defined.
      *
      * @param string $propertyName
+     *
      * @return bool
      */
     public function isCustomPropertySet($propertyName)
@@ -424,9 +414,10 @@ class Properties
     }
 
     /**
-     * Get a Custom Property Value
+     * Get a Custom Property Value.
      *
      * @param string $propertyName
+     *
      * @return string
      */
     public function getCustomPropertyValue($propertyName)
@@ -437,9 +428,10 @@ class Properties
     }
 
     /**
-     * Get a Custom Property Type
+     * Get a Custom Property Type.
      *
      * @param string $propertyName
+     *
      * @return string
      */
     public function getCustomPropertyType($propertyName)
@@ -450,7 +442,7 @@ class Properties
     }
 
     /**
-     * Set a Custom Property
+     * Set a Custom Property.
      *
      * @param string $propertyName
      * @param mixed $propertyValue
@@ -460,6 +452,7 @@ class Properties
      *   's' : String
      *   'd' : Date/Time
      *   'b' : Boolean
+     *
      * @return Properties
      */
     public function setCustomProperty($propertyName, $propertyValue = '', $propertyType = null)
@@ -510,9 +503,11 @@ class Properties
         switch ($propertyType) {
             case 'empty':     //    Empty
                 return '';
+
                 break;
             case 'null':      //    Null
                 return null;
+
                 break;
             case 'i1':        //    1-Byte Signed Integer
             case 'i2':        //    2-Byte Signed Integer
@@ -520,6 +515,7 @@ class Properties
             case 'i8':        //    8-Byte Signed Integer
             case 'int':       //    Integer
                 return (int) $propertyValue;
+
                 break;
             case 'ui1':       //    1-Byte Unsigned Integer
             case 'ui2':       //    2-Byte Unsigned Integer
@@ -527,23 +523,28 @@ class Properties
             case 'ui8':       //    8-Byte Unsigned Integer
             case 'uint':      //    Unsigned Integer
                 return abs((int) $propertyValue);
+
                 break;
             case 'r4':        //    4-Byte Real Number
             case 'r8':        //    8-Byte Real Number
             case 'decimal':   //    Decimal
                 return (float) $propertyValue;
+
                 break;
             case 'lpstr':     //    LPSTR
             case 'lpwstr':    //    LPWSTR
             case 'bstr':      //    Basic String
                 return $propertyValue;
+
                 break;
             case 'date':      //    Date and Time
             case 'filetime':  //    File Time
                 return strtotime($propertyValue);
+
                 break;
             case 'bool':     //    Boolean
                 return ($propertyValue == 'true') ? true : false;
+
                 break;
             case 'cy':       //    Currency
             case 'error':    //    Error Status Code
@@ -559,6 +560,7 @@ class Properties
             case 'clsid':    //    Class ID
             case 'cf':       //    Clipboard Data
                 return $propertyValue;
+
                 break;
         }
 
@@ -579,11 +581,13 @@ class Properties
             case 'ui8':      //    8-Byte Unsigned Integer
             case 'uint':     //    Unsigned Integer
                 return self::PROPERTY_TYPE_INTEGER;
+
                 break;
             case 'r4':       //    4-Byte Real Number
             case 'r8':       //    8-Byte Real Number
             case 'decimal':  //    Decimal
                 return self::PROPERTY_TYPE_FLOAT;
+
                 break;
             case 'empty':    //    Empty
             case 'null':     //    Null
@@ -591,13 +595,16 @@ class Properties
             case 'lpwstr':   //    LPWSTR
             case 'bstr':     //    Basic String
                 return self::PROPERTY_TYPE_STRING;
+
                 break;
             case 'date':     //    Date and Time
             case 'filetime': //    File Time
                 return self::PROPERTY_TYPE_DATE;
+
                 break;
             case 'bool':     //    Boolean
                 return self::PROPERTY_TYPE_BOOLEAN;
+
                 break;
             case 'cy':       //    Currency
             case 'error':    //    Error Status Code
@@ -613,6 +620,7 @@ class Properties
             case 'clsid':    //    Class ID
             case 'cf':       //    Clipboard Data
                 return self::PROPERTY_TYPE_UNKNOWN;
+
                 break;
         }
 

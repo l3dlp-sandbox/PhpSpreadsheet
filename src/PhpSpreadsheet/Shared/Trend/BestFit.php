@@ -2,79 +2,55 @@
 
 namespace PhpOffice\PhpSpreadsheet\Shared\Trend;
 
-/**
- * bestFit
- *
- * Copyright (c) 2006 - 2016 PhpSpreadsheet
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * @category   PhpSpreadsheet
- * @copyright  Copyright (c) 2006 - 2016 PhpSpreadsheet (https://github.com/PHPOffice/PhpSpreadsheet)
- * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt    LGPL
- * @version    ##VERSION##, ##DATE##
- */
 class BestFit
 {
     /**
-     * Indicator flag for a calculation error
+     * Indicator flag for a calculation error.
      *
-     * @var    bool
-     **/
+     * @var bool
+     */
     protected $error = false;
 
     /**
-     * Algorithm type to use for best-fit
+     * Algorithm type to use for best-fit.
      *
-     * @var    string
-     **/
+     * @var string
+     */
     protected $bestFitType = 'undetermined';
 
     /**
-     * Number of entries in the sets of x- and y-value arrays
+     * Number of entries in the sets of x- and y-value arrays.
      *
-     * @var    int
-     **/
+     * @var int
+     */
     protected $valueCount = 0;
 
     /**
-     * X-value dataseries of values
+     * X-value dataseries of values.
      *
-     * @var    float[]
-     **/
+     * @var float[]
+     */
     protected $xValues = [];
 
     /**
-     * Y-value dataseries of values
+     * Y-value dataseries of values.
      *
-     * @var    float[]
-     **/
+     * @var float[]
+     */
     protected $yValues = [];
 
     /**
-     * Flag indicating whether values should be adjusted to Y=0
+     * Flag indicating whether values should be adjusted to Y=0.
      *
-     * @var    bool
-     **/
+     * @var bool
+     */
     protected $adjustToZero = false;
 
     /**
-     * Y-value series of best-fit values
+     * Y-value series of best-fit values.
      *
-     * @var    float[]
-     **/
+     * @var float[]
+     */
     protected $yBestFitValues = [];
 
     protected $goodnessOfFit = 1;
@@ -116,10 +92,11 @@ class BestFit
     }
 
     /**
-     * Return the Y-Value for a specified value of X
+     * Return the Y-Value for a specified value of X.
      *
-     * @param     float        $xValue            X-Value
-     * @return     bool                        Y-Value
+     * @param float $xValue X-Value
+     *
+     * @return bool Y-Value
      */
     public function getValueOfYForX($xValue)
     {
@@ -127,10 +104,11 @@ class BestFit
     }
 
     /**
-     * Return the X-Value for a specified value of Y
+     * Return the X-Value for a specified value of Y.
      *
-     * @param     float        $yValue            Y-Value
-     * @return     bool                        X-Value
+     * @param float $yValue Y-Value
+     *
+     * @return bool X-Value
      */
     public function getValueOfXForY($yValue)
     {
@@ -138,9 +116,9 @@ class BestFit
     }
 
     /**
-     * Return the original set of X-Values
+     * Return the original set of X-Values.
      *
-     * @return     float[]                X-Values
+     * @return float[] X-Values
      */
     public function getXValues()
     {
@@ -148,10 +126,11 @@ class BestFit
     }
 
     /**
-     * Return the Equation of the best-fit line
+     * Return the Equation of the best-fit line.
      *
-     * @param     int        $dp        Number of places of decimal precision to display
-     * @return     bool
+     * @param int $dp Number of places of decimal precision to display
+     *
+     * @return bool
      */
     public function getEquation($dp = 0)
     {
@@ -159,10 +138,11 @@ class BestFit
     }
 
     /**
-     * Return the Slope of the line
+     * Return the Slope of the line.
      *
-     * @param     int        $dp        Number of places of decimal precision to display
-     * @return     string
+     * @param int $dp Number of places of decimal precision to display
+     *
+     * @return string
      */
     public function getSlope($dp = 0)
     {
@@ -174,10 +154,11 @@ class BestFit
     }
 
     /**
-     * Return the standard error of the Slope
+     * Return the standard error of the Slope.
      *
-     * @param     int        $dp        Number of places of decimal precision to display
-     * @return     string
+     * @param int $dp Number of places of decimal precision to display
+     *
+     * @return string
      */
     public function getSlopeSE($dp = 0)
     {
@@ -189,10 +170,11 @@ class BestFit
     }
 
     /**
-     * Return the Value of X where it intersects Y = 0
+     * Return the Value of X where it intersects Y = 0.
      *
-     * @param     int        $dp        Number of places of decimal precision to display
-     * @return     string
+     * @param int $dp Number of places of decimal precision to display
+     *
+     * @return string
      */
     public function getIntersect($dp = 0)
     {
@@ -204,10 +186,11 @@ class BestFit
     }
 
     /**
-     * Return the standard error of the Intersect
+     * Return the standard error of the Intersect.
      *
-     * @param     int        $dp        Number of places of decimal precision to display
-     * @return     string
+     * @param int $dp Number of places of decimal precision to display
+     *
+     * @return string
      */
     public function getIntersectSE($dp = 0)
     {
@@ -219,10 +202,11 @@ class BestFit
     }
 
     /**
-     * Return the goodness of fit for this regression
+     * Return the goodness of fit for this regression.
      *
-     * @param     int        $dp        Number of places of decimal precision to return
-     * @return     float
+     * @param int $dp Number of places of decimal precision to return
+     *
+     * @return float
      */
     public function getGoodnessOfFit($dp = 0)
     {
@@ -243,10 +227,11 @@ class BestFit
     }
 
     /**
-     * Return the standard deviation of the residuals for this regression
+     * Return the standard deviation of the residuals for this regression.
      *
-     * @param     int        $dp        Number of places of decimal precision to return
-     * @return     float
+     * @param int $dp Number of places of decimal precision to return
+     *
+     * @return float
      */
     public function getStdevOfResiduals($dp = 0)
     {
@@ -411,11 +396,11 @@ class BestFit
     }
 
     /**
-     * Define the regression
+     * Define the regression.
      *
-     * @param    float[]        $yValues    The set of Y-values for this regression
-     * @param    float[]        $xValues    The set of X-values for this regression
-     * @param    bool        $const
+     * @param float[] $yValues The set of Y-values for this regression
+     * @param float[] $xValues The set of X-values for this regression
+     * @param bool $const
      */
     public function __construct($yValues, $xValues = [], $const = true)
     {
@@ -426,12 +411,9 @@ class BestFit
         //    Define X Values if necessary
         if ($nX == 0) {
             $xValues = range(1, $nY);
-            $nX = $nY;
         } elseif ($nY != $nX) {
             //    Ensure both arrays of points are the same size
             $this->error = true;
-
-            return false;
         }
 
         $this->valueCount = $nY;

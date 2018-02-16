@@ -3,15 +3,16 @@
 namespace PhpOffice\PhpSpreadsheetTests\Shared;
 
 use PhpOffice\PhpSpreadsheet\Shared\Font;
+use PHPUnit\Framework\TestCase;
 
-class FontTest extends \PHPUnit_Framework_TestCase
+class FontTest extends TestCase
 {
     public function testGetAutoSizeMethod()
     {
         $expectedResult = Font::AUTOSIZE_METHOD_APPROX;
 
         $result = Font::getAutoSizeMethod();
-        $this->assertEquals($expectedResult, $result);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function testSetAutoSizeMethod()
@@ -23,7 +24,7 @@ class FontTest extends \PHPUnit_Framework_TestCase
 
         foreach ($autosizeMethodValues as $autosizeMethodValue) {
             $result = Font::setAutoSizeMethod($autosizeMethodValue);
-            $this->assertTrue($result);
+            self::assertTrue($result);
         }
     }
 
@@ -32,18 +33,18 @@ class FontTest extends \PHPUnit_Framework_TestCase
         $unsupportedAutosizeMethod = 'guess';
 
         $result = Font::setAutoSizeMethod($unsupportedAutosizeMethod);
-        $this->assertFalse($result);
+        self::assertFalse($result);
     }
 
     /**
      * @dataProvider providerFontSizeToPixels
+     *
+     * @param mixed $expectedResult
      */
-    public function testFontSizeToPixels()
+    public function testFontSizeToPixels($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Font::class, 'fontSizeToPixels'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = Font::fontSizeToPixels(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerFontSizeToPixels()
@@ -53,13 +54,13 @@ class FontTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerInchSizeToPixels
+     *
+     * @param mixed $expectedResult
      */
-    public function testInchSizeToPixels()
+    public function testInchSizeToPixels($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Font::class, 'inchSizeToPixels'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = Font::inchSizeToPixels(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerInchSizeToPixels()
@@ -69,13 +70,13 @@ class FontTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerCentimeterSizeToPixels
+     *
+     * @param mixed $expectedResult
      */
-    public function testCentimeterSizeToPixels()
+    public function testCentimeterSizeToPixels($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Font::class, 'centimeterSizeToPixels'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = Font::centimeterSizeToPixels(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerCentimeterSizeToPixels()

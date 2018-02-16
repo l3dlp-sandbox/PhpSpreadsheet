@@ -2,32 +2,10 @@
 
 namespace PhpOffice\PhpSpreadsheet\Calculation;
 
-/**
- * Copyright (c) 2006 - 2016 PhpSpreadsheet
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
- *
- * @category    PhpSpreadsheet
- * @copyright    Copyright (c) 2006 - 2016 PhpSpreadsheet (https://github.com/PHPOffice/PhpSpreadsheet)
- * @license        http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt    LGPL
- * @version        ##VERSION##, ##DATE##
- */
 class Logical
 {
     /**
-     * TRUE
+     * TRUE.
      *
      * Returns the boolean TRUE.
      *
@@ -35,7 +13,8 @@ class Logical
      *        =TRUE()
      *
      * @category Logical Functions
-     * @return    bool        True
+     *
+     * @return bool True
      */
     public static function true()
     {
@@ -43,7 +22,7 @@ class Logical
     }
 
     /**
-     * FALSE
+     * FALSE.
      *
      * Returns the boolean FALSE.
      *
@@ -51,7 +30,8 @@ class Logical
      *        =FALSE()
      *
      * @category Logical Functions
-     * @return    bool        False
+     *
+     * @return bool False
      */
     public static function false()
     {
@@ -59,7 +39,7 @@ class Logical
     }
 
     /**
-     * LOGICAL_AND
+     * LOGICAL_AND.
      *
      * Returns boolean TRUE if all its arguments are TRUE; returns FALSE if one or more argument is FALSE.
      *
@@ -75,16 +55,18 @@ class Logical
      *            the value TRUE or FALSE, in which case it is evaluated as the corresponding boolean value
      *
      * @category Logical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    string|bool        The logical AND of the arguments.
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return bool|string the logical AND of the arguments
      */
-    public static function logicalAnd()
+    public static function logicalAnd(...$args)
     {
         // Return value
         $returnValue = true;
 
         // Loop through the arguments
-        $aArgs = Functions::flattenArray(func_get_args());
+        $aArgs = Functions::flattenArray($args);
         $argCount = -1;
         foreach ($aArgs as $argCount => $arg) {
             // Is it a boolean value?
@@ -94,9 +76,9 @@ class Logical
                 $returnValue = $returnValue && ($arg != 0);
             } elseif (is_string($arg)) {
                 $arg = strtoupper($arg);
-                if (($arg == 'TRUE') || ($arg == \PhpOffice\PhpSpreadsheet\Calculation::getTRUE())) {
+                if (($arg == 'TRUE') || ($arg == Calculation::getTRUE())) {
                     $arg = true;
-                } elseif (($arg == 'FALSE') || ($arg == \PhpOffice\PhpSpreadsheet\Calculation::getFALSE())) {
+                } elseif (($arg == 'FALSE') || ($arg == Calculation::getFALSE())) {
                     $arg = false;
                 } else {
                     return Functions::VALUE();
@@ -114,7 +96,7 @@ class Logical
     }
 
     /**
-     * LOGICAL_OR
+     * LOGICAL_OR.
      *
      * Returns boolean TRUE if any argument is TRUE; returns FALSE if all arguments are FALSE.
      *
@@ -130,16 +112,18 @@ class Logical
      *            the value TRUE or FALSE, in which case it is evaluated as the corresponding boolean value
      *
      * @category Logical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    string|bool        The logical OR of the arguments.
+     *
+     * @param mixed $args Data values
+     *
+     * @return bool|string the logical OR of the arguments
      */
-    public static function logicalOr()
+    public static function logicalOr(...$args)
     {
         // Return value
         $returnValue = false;
 
         // Loop through the arguments
-        $aArgs = Functions::flattenArray(func_get_args());
+        $aArgs = Functions::flattenArray($args);
         $argCount = -1;
         foreach ($aArgs as $argCount => $arg) {
             // Is it a boolean value?
@@ -149,9 +133,9 @@ class Logical
                 $returnValue = $returnValue || ($arg != 0);
             } elseif (is_string($arg)) {
                 $arg = strtoupper($arg);
-                if (($arg == 'TRUE') || ($arg == \PhpOffice\PhpSpreadsheet\Calculation::getTRUE())) {
+                if (($arg == 'TRUE') || ($arg == Calculation::getTRUE())) {
                     $arg = true;
-                } elseif (($arg == 'FALSE') || ($arg == \PhpOffice\PhpSpreadsheet\Calculation::getFALSE())) {
+                } elseif (($arg == 'FALSE') || ($arg == Calculation::getFALSE())) {
                     $arg = false;
                 } else {
                     return Functions::VALUE();
@@ -169,7 +153,7 @@ class Logical
     }
 
     /**
-     * NOT
+     * NOT.
      *
      * Returns the boolean inverse of the argument.
      *
@@ -184,28 +168,30 @@ class Logical
      *            the value TRUE or FALSE, in which case it is evaluated as the corresponding boolean value
      *
      * @category Logical Functions
-     * @param    mixed        $logical    A value or expression that can be evaluated to TRUE or FALSE
-     * @return    bool|string        The boolean inverse of the argument.
+     *
+     * @param mixed $logical A value or expression that can be evaluated to TRUE or FALSE
+     *
+     * @return bool|string the boolean inverse of the argument
      */
     public static function NOT($logical = false)
     {
         $logical = Functions::flattenSingleValue($logical);
         if (is_string($logical)) {
             $logical = strtoupper($logical);
-            if (($logical == 'TRUE') || ($logical == \PhpOffice\PhpSpreadsheet\Calculation::getTRUE())) {
+            if (($logical == 'TRUE') || ($logical == Calculation::getTRUE())) {
                 return false;
-            } elseif (($logical == 'FALSE') || ($logical == \PhpOffice\PhpSpreadsheet\Calculation::getFALSE())) {
+            } elseif (($logical == 'FALSE') || ($logical == Calculation::getFALSE())) {
                 return true;
-            } else {
-                return Functions::VALUE();
             }
+
+            return Functions::VALUE();
         }
 
         return !$logical;
     }
 
     /**
-     * STATEMENT_IF
+     * STATEMENT_IF.
      *
      * Returns one value if a condition you specify evaluates to TRUE and another value if it evaluates to FALSE.
      *
@@ -230,35 +216,39 @@ class Logical
      *            ReturnIfFalse can be another formula.
      *
      * @category Logical Functions
-     * @param    mixed    $condition        Condition to evaluate
-     * @param    mixed    $returnIfTrue    Value to return when condition is true
-     * @param    mixed    $returnIfFalse    Optional value to return when condition is false
-     * @return    mixed    The value of returnIfTrue or returnIfFalse determined by condition
+     *
+     * @param mixed $condition Condition to evaluate
+     * @param mixed $returnIfTrue Value to return when condition is true
+     * @param mixed $returnIfFalse Optional value to return when condition is false
+     *
+     * @return mixed The value of returnIfTrue or returnIfFalse determined by condition
      */
     public static function statementIf($condition = true, $returnIfTrue = 0, $returnIfFalse = false)
     {
-        $condition = (is_null($condition)) ? true : (boolean) Functions::flattenSingleValue($condition);
-        $returnIfTrue = (is_null($returnIfTrue)) ? 0 : Functions::flattenSingleValue($returnIfTrue);
-        $returnIfFalse = (is_null($returnIfFalse)) ? false : Functions::flattenSingleValue($returnIfFalse);
+        $condition = ($condition === null) ? true : (bool) Functions::flattenSingleValue($condition);
+        $returnIfTrue = ($returnIfTrue === null) ? 0 : Functions::flattenSingleValue($returnIfTrue);
+        $returnIfFalse = ($returnIfFalse === null) ? false : Functions::flattenSingleValue($returnIfFalse);
 
         return ($condition) ? $returnIfTrue : $returnIfFalse;
     }
 
     /**
-     * IFERROR
+     * IFERROR.
      *
      * Excel Function:
      *        =IFERROR(testValue,errorpart)
      *
      * @category Logical Functions
-     * @param    mixed    $testValue    Value to check, is also the value returned when no error
-     * @param    mixed    $errorpart    Value to return when testValue is an error condition
-     * @return    mixed    The value of errorpart or testValue determined by error condition
+     *
+     * @param mixed $testValue Value to check, is also the value returned when no error
+     * @param mixed $errorpart Value to return when testValue is an error condition
+     *
+     * @return mixed The value of errorpart or testValue determined by error condition
      */
     public static function IFERROR($testValue = '', $errorpart = '')
     {
-        $testValue = (is_null($testValue)) ? '' : Functions::flattenSingleValue($testValue);
-        $errorpart = (is_null($errorpart)) ? '' : Functions::flattenSingleValue($errorpart);
+        $testValue = ($testValue === null) ? '' : Functions::flattenSingleValue($testValue);
+        $errorpart = ($errorpart === null) ? '' : Functions::flattenSingleValue($errorpart);
 
         return self::statementIf(Functions::isError($testValue), $errorpart, $testValue);
     }

@@ -4,17 +4,19 @@ namespace PhpOffice\PhpSpreadsheetTests\Calculation;
 
 use PhpOffice\PhpSpreadsheet\Calculation\Engineering;
 use PhpOffice\PhpSpreadsheet\Calculation\Functions;
+use PhpOffice\PhpSpreadsheetTests\Custom\ComplexAssert;
+use PHPUnit\Framework\TestCase;
 
-class EngineeringTest extends \PHPUnit_Framework_TestCase
+class EngineeringTest extends TestCase
 {
     /**
-     * @var \PhpOffice\PhpSpreadsheetTests\Custom\ComplexAssert
+     * @var ComplexAssert
      */
     protected $complexAssert;
 
     public function setUp()
     {
-        $this->complexAssert = new \PhpOffice\PhpSpreadsheetTests\Custom\ComplexAssert();
+        $this->complexAssert = new ComplexAssert();
         Functions::setCompatibilityMode(Functions::COMPATIBILITY_EXCEL);
     }
 
@@ -25,13 +27,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerBESSELI
+     *
+     * @param mixed $expectedResult
      */
-    public function testBESSELI()
+    public function testBESSELI($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'BESSELI'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = Engineering::BESSELI(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerBESSELI()
@@ -41,13 +43,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerBESSELJ
+     *
+     * @param mixed $expectedResult
      */
-    public function testBESSELJ()
+    public function testBESSELJ($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'BESSELJ'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = Engineering::BESSELJ(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerBESSELJ()
@@ -57,13 +59,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerBESSELK
+     *
+     * @param mixed $expectedResult
      */
-    public function testBESSELK()
+    public function testBESSELK($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'BESSELK'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = Engineering::BESSELK(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerBESSELK()
@@ -73,13 +75,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerBESSELY
+     *
+     * @param mixed $expectedResult
      */
-    public function testBESSELY()
+    public function testBESSELY($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'BESSELY'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = Engineering::BESSELY(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerBESSELY()
@@ -89,13 +91,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerCOMPLEX
+     *
+     * @param mixed $expectedResult
      */
-    public function testCOMPLEX()
+    public function testCOMPLEX($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'COMPLEX'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = Engineering::COMPLEX(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerCOMPLEX()
@@ -105,13 +107,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerIMAGINARY
+     *
+     * @param mixed $expectedResult
      */
-    public function testIMAGINARY()
+    public function testIMAGINARY($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'IMAGINARY'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = Engineering::IMAGINARY(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerIMAGINARY()
@@ -121,13 +123,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerIMREAL
+     *
+     * @param mixed $expectedResult
      */
-    public function testIMREAL()
+    public function testIMREAL($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'IMREAL'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = Engineering::IMREAL(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerIMREAL()
@@ -137,13 +139,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerIMABS
+     *
+     * @param mixed $expectedResult
      */
-    public function testIMABS()
+    public function testIMABS($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'IMABS'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = Engineering::IMABS(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerIMABS()
@@ -153,14 +155,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerIMARGUMENT
-     * @group fail19
+     *
+     * @param mixed $expectedResult
      */
-    public function testIMARGUMENT()
+    public function testIMARGUMENT($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'IMARGUMENT'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = Engineering::IMARGUMENT(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerIMARGUMENT()
@@ -170,13 +171,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerIMCONJUGATE
+     *
+     * @param mixed $expectedResult
      */
-    public function testIMCONJUGATE()
+    public function testIMCONJUGATE($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'IMCONJUGATE'], $args);
-        $this->assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
+        $result = Engineering::IMCONJUGATE(...$args);
+        self::assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
     }
 
     public function providerIMCONJUGATE()
@@ -186,13 +187,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerIMCOS
+     *
+     * @param mixed $expectedResult
      */
-    public function testIMCOS()
+    public function testIMCOS($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'IMCOS'], $args);
-        $this->assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
+        $result = Engineering::IMCOS(...$args);
+        self::assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
     }
 
     public function providerIMCOS()
@@ -202,16 +203,15 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerIMDIV
-     * @group fail19
+     *
+     * @param mixed $expectedResult
      */
-    public function testIMDIV()
+    public function testIMDIV($expectedResult, ...$args)
     {
         $this->markTestIncomplete('TODO: This test should be fixed');
 
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'IMDIV'], $args);
-        $this->assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
+        $result = Engineering::IMDIV(...$args);
+        self::assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
     }
 
     public function providerIMDIV()
@@ -221,13 +221,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerIMEXP
+     *
+     * @param mixed $expectedResult
      */
-    public function testIMEXP()
+    public function testIMEXP($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'IMEXP'], $args);
-        $this->assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
+        $result = Engineering::IMEXP(...$args);
+        self::assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
     }
 
     public function providerIMEXP()
@@ -237,13 +237,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerIMLN
+     *
+     * @param mixed $expectedResult
      */
-    public function testIMLN()
+    public function testIMLN($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'IMLN'], $args);
-        $this->assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
+        $result = Engineering::IMLN(...$args);
+        self::assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
     }
 
     public function providerIMLN()
@@ -253,13 +253,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerIMLOG2
+     *
+     * @param mixed $expectedResult
      */
-    public function testIMLOG2()
+    public function testIMLOG2($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'IMLOG2'], $args);
-        $this->assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
+        $result = Engineering::IMLOG2(...$args);
+        self::assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
     }
 
     public function providerIMLOG2()
@@ -269,13 +269,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerIMLOG10
+     *
+     * @param mixed $expectedResult
      */
-    public function testIMLOG10()
+    public function testIMLOG10($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'IMLOG10'], $args);
-        $this->assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
+        $result = Engineering::IMLOG10(...$args);
+        self::assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
     }
 
     public function providerIMLOG10()
@@ -285,16 +285,15 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerIMPOWER
-     * @group fail19
+     *
+     * @param mixed $expectedResult
      */
-    public function testIMPOWER()
+    public function testIMPOWER($expectedResult, ...$args)
     {
         $this->markTestIncomplete('TODO: This test should be fixed');
 
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'IMPOWER'], $args);
-        $this->assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
+        $result = Engineering::IMPOWER(...$args);
+        self::assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
     }
 
     public function providerIMPOWER()
@@ -304,13 +303,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerIMPRODUCT
+     *
+     * @param mixed $expectedResult
      */
-    public function testIMPRODUCT()
+    public function testIMPRODUCT($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'IMPRODUCT'], $args);
-        $this->assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
+        $result = Engineering::IMPRODUCT(...$args);
+        self::assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
     }
 
     public function providerIMPRODUCT()
@@ -320,13 +319,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerIMSIN
+     *
+     * @param mixed $expectedResult
      */
-    public function testIMSIN()
+    public function testIMSIN($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'IMSIN'], $args);
-        $this->assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
+        $result = Engineering::IMSIN(...$args);
+        self::assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
     }
 
     public function providerIMSIN()
@@ -336,13 +335,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerIMSQRT
+     *
+     * @param mixed $expectedResult
      */
-    public function testIMSQRT()
+    public function testIMSQRT($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'IMSQRT'], $args);
-        $this->assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
+        $result = Engineering::IMSQRT(...$args);
+        self::assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
     }
 
     public function providerIMSQRT()
@@ -352,16 +351,15 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerIMSUB
-     * @group fail19
+     *
+     * @param mixed $expectedResult
      */
-    public function testIMSUB()
+    public function testIMSUB($expectedResult, ...$args)
     {
         $this->markTestIncomplete('TODO: This test should be fixed');
 
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'IMSUB'], $args);
-        $this->assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
+        $result = Engineering::IMSUB(...$args);
+        self::assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
     }
 
     public function providerIMSUB()
@@ -371,14 +369,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerIMSUM
-     * @group fail19
+     *
+     * @param mixed $expectedResult
      */
-    public function testIMSUM()
+    public function testIMSUM($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'IMSUM'], $args);
-        $this->assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
+        $result = Engineering::IMSUM(...$args);
+        self::assertTrue($this->complexAssert->assertComplexEquals($expectedResult, $result, 1E-8), $this->complexAssert->getErrorMessage());
     }
 
     public function providerIMSUM()
@@ -388,13 +385,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerERF
+     *
+     * @param mixed $expectedResult
      */
-    public function testERF()
+    public function testERF($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'ERF'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-12);
+        $result = Engineering::ERF(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-12);
     }
 
     public function providerERF()
@@ -404,13 +401,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerERFC
+     *
+     * @param mixed $expectedResult
      */
-    public function testERFC()
+    public function testERFC($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'ERFC'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-12);
+        $result = Engineering::ERFC(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-12);
     }
 
     public function providerERFC()
@@ -420,13 +417,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerBIN2DEC
+     *
+     * @param mixed $expectedResult
      */
-    public function testBIN2DEC()
+    public function testBIN2DEC($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'BINTODEC'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = Engineering::BINTODEC(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerBIN2DEC()
@@ -436,13 +433,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerBIN2HEX
+     *
+     * @param mixed $expectedResult
      */
-    public function testBIN2HEX()
+    public function testBIN2HEX($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'BINTOHEX'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = Engineering::BINTOHEX(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerBIN2HEX()
@@ -452,13 +449,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerBIN2OCT
+     *
+     * @param mixed $expectedResult
      */
-    public function testBIN2OCT()
+    public function testBIN2OCT($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'BINTOOCT'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = Engineering::BINTOOCT(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerBIN2OCT()
@@ -468,13 +465,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerDEC2BIN
+     *
+     * @param mixed $expectedResult
      */
-    public function testDEC2BIN()
+    public function testDEC2BIN($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'DECTOBIN'], $args);
-        $this->assertEquals($expectedResult, $result, null);
+        $result = Engineering::DECTOBIN(...$args);
+        self::assertEquals($expectedResult, $result, null);
     }
 
     public function providerDEC2BIN()
@@ -484,13 +481,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerDEC2HEX
+     *
+     * @param mixed $expectedResult
      */
-    public function testDEC2HEX()
+    public function testDEC2HEX($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'DECTOHEX'], $args);
-        $this->assertEquals($expectedResult, $result, null);
+        $result = Engineering::DECTOHEX(...$args);
+        self::assertEquals($expectedResult, $result, null);
     }
 
     public function providerDEC2HEX()
@@ -500,13 +497,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerDEC2OCT
+     *
+     * @param mixed $expectedResult
      */
-    public function testDEC2OCT()
+    public function testDEC2OCT($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'DECTOOCT'], $args);
-        $this->assertEquals($expectedResult, $result, null);
+        $result = Engineering::DECTOOCT(...$args);
+        self::assertEquals($expectedResult, $result, null);
     }
 
     public function providerDEC2OCT()
@@ -516,13 +513,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerHEX2BIN
+     *
+     * @param mixed $expectedResult
      */
-    public function testHEX2BIN()
+    public function testHEX2BIN($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'HEXTOBIN'], $args);
-        $this->assertEquals($expectedResult, $result, null);
+        $result = Engineering::HEXTOBIN(...$args);
+        self::assertEquals($expectedResult, $result, null);
     }
 
     public function providerHEX2BIN()
@@ -532,13 +529,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerHEX2DEC
+     *
+     * @param mixed $expectedResult
      */
-    public function testHEX2DEC()
+    public function testHEX2DEC($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'HEXTODEC'], $args);
-        $this->assertEquals($expectedResult, $result, null);
+        $result = Engineering::HEXTODEC(...$args);
+        self::assertEquals($expectedResult, $result, null);
     }
 
     public function providerHEX2DEC()
@@ -548,13 +545,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerHEX2OCT
+     *
+     * @param mixed $expectedResult
      */
-    public function testHEX2OCT()
+    public function testHEX2OCT($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'HEXTOOCT'], $args);
-        $this->assertEquals($expectedResult, $result, null);
+        $result = Engineering::HEXTOOCT(...$args);
+        self::assertEquals($expectedResult, $result, null);
     }
 
     public function providerHEX2OCT()
@@ -564,13 +561,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerOCT2BIN
+     *
+     * @param mixed $expectedResult
      */
-    public function testOCT2BIN()
+    public function testOCT2BIN($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'OCTTOBIN'], $args);
-        $this->assertEquals($expectedResult, $result, null);
+        $result = Engineering::OCTTOBIN(...$args);
+        self::assertEquals($expectedResult, $result, null);
     }
 
     public function providerOCT2BIN()
@@ -580,13 +577,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerOCT2DEC
+     *
+     * @param mixed $expectedResult
      */
-    public function testOCT2DEC()
+    public function testOCT2DEC($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'OCTTODEC'], $args);
-        $this->assertEquals($expectedResult, $result, null);
+        $result = Engineering::OCTTODEC(...$args);
+        self::assertEquals($expectedResult, $result, null);
     }
 
     public function providerOCT2DEC()
@@ -596,13 +593,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerOCT2HEX
+     *
+     * @param mixed $expectedResult
      */
-    public function testOCT2HEX()
+    public function testOCT2HEX($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'OCTTOHEX'], $args);
-        $this->assertEquals($expectedResult, $result, null);
+        $result = Engineering::OCTTOHEX(...$args);
+        self::assertEquals($expectedResult, $result, null);
     }
 
     public function providerOCT2HEX()
@@ -612,13 +609,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerDELTA
+     *
+     * @param mixed $expectedResult
      */
-    public function testDELTA()
+    public function testDELTA($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'DELTA'], $args);
-        $this->assertEquals($expectedResult, $result, null);
+        $result = Engineering::DELTA(...$args);
+        self::assertEquals($expectedResult, $result, null);
     }
 
     public function providerDELTA()
@@ -628,13 +625,13 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerGESTEP
+     *
+     * @param mixed $expectedResult
      */
-    public function testGESTEP()
+    public function testGESTEP($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'GESTEP'], $args);
-        $this->assertEquals($expectedResult, $result, null);
+        $result = Engineering::GESTEP(...$args);
+        self::assertEquals($expectedResult, $result, null);
     }
 
     public function providerGESTEP()
@@ -645,36 +642,36 @@ class EngineeringTest extends \PHPUnit_Framework_TestCase
     public function testGetConversionGroups()
     {
         $result = Engineering::getConversionGroups();
-        $this->assertInternalType('array', $result);
+        self::assertInternalType('array', $result);
     }
 
     public function testGetConversionGroupUnits()
     {
         $result = Engineering::getConversionGroupUnits();
-        $this->assertInternalType('array', $result);
+        self::assertInternalType('array', $result);
     }
 
     public function testGetConversionGroupUnitDetails()
     {
         $result = Engineering::getConversionGroupUnitDetails();
-        $this->assertInternalType('array', $result);
+        self::assertInternalType('array', $result);
     }
 
     public function testGetConversionMultipliers()
     {
         $result = Engineering::getConversionMultipliers();
-        $this->assertInternalType('array', $result);
+        self::assertInternalType('array', $result);
     }
 
     /**
      * @dataProvider providerCONVERTUOM
+     *
+     * @param mixed $expectedResult
      */
-    public function testCONVERTUOM()
+    public function testCONVERTUOM($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Engineering::class, 'CONVERTUOM'], $args);
-        $this->assertEquals($expectedResult, $result, null);
+        $result = Engineering::CONVERTUOM(...$args);
+        self::assertEquals($expectedResult, $result, null);
     }
 
     public function providerCONVERTUOM()

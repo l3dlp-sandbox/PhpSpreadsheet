@@ -2,67 +2,47 @@
 
 namespace PhpOffice\PhpSpreadsheet\Document;
 
-/**
- * Copyright (c) 2006 - 2016 PhpSpreadsheet
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * @category   PhpSpreadsheet
- * @copyright  Copyright (c) 2006 - 2016 PhpSpreadsheet (https://github.com/PHPOffice/PhpSpreadsheet)
- * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt    LGPL
- * @version    ##VERSION##, ##DATE##
- */
+use PhpOffice\PhpSpreadsheet\Shared\PasswordHasher;
+
 class Security
 {
     /**
-     * LockRevision
+     * LockRevision.
      *
      * @var bool
      */
     private $lockRevision = false;
 
     /**
-     * LockStructure
+     * LockStructure.
      *
      * @var bool
      */
     private $lockStructure = false;
 
     /**
-     * LockWindows
+     * LockWindows.
      *
      * @var bool
      */
     private $lockWindows = false;
 
     /**
-     * RevisionsPassword
+     * RevisionsPassword.
      *
      * @var string
      */
     private $revisionsPassword = '';
 
     /**
-     * WorkbookPassword
+     * WorkbookPassword.
      *
      * @var string
      */
     private $workbookPassword = '';
 
     /**
-     * Create a new Document Security instance
+     * Create a new Document Security instance.
      */
     public function __construct()
     {
@@ -81,7 +61,7 @@ class Security
     }
 
     /**
-     * Get LockRevision
+     * Get LockRevision.
      *
      * @return bool
      */
@@ -91,12 +71,13 @@ class Security
     }
 
     /**
-     * Set LockRevision
+     * Set LockRevision.
      *
      * @param bool $pValue
+     *
      * @return Security
      */
-    public function setLockRevision($pValue = false)
+    public function setLockRevision($pValue)
     {
         $this->lockRevision = $pValue;
 
@@ -104,7 +85,7 @@ class Security
     }
 
     /**
-     * Get LockStructure
+     * Get LockStructure.
      *
      * @return bool
      */
@@ -114,12 +95,13 @@ class Security
     }
 
     /**
-     * Set LockStructure
+     * Set LockStructure.
      *
      * @param bool $pValue
+     *
      * @return Security
      */
-    public function setLockStructure($pValue = false)
+    public function setLockStructure($pValue)
     {
         $this->lockStructure = $pValue;
 
@@ -127,7 +109,7 @@ class Security
     }
 
     /**
-     * Get LockWindows
+     * Get LockWindows.
      *
      * @return bool
      */
@@ -137,12 +119,13 @@ class Security
     }
 
     /**
-     * Set LockWindows
+     * Set LockWindows.
      *
      * @param bool $pValue
+     *
      * @return Security
      */
-    public function setLockWindows($pValue = false)
+    public function setLockWindows($pValue)
     {
         $this->lockWindows = $pValue;
 
@@ -150,7 +133,7 @@ class Security
     }
 
     /**
-     * Get RevisionsPassword (hashed)
+     * Get RevisionsPassword (hashed).
      *
      * @return string
      */
@@ -160,16 +143,17 @@ class Security
     }
 
     /**
-     * Set RevisionsPassword
+     * Set RevisionsPassword.
      *
-     * @param string     $pValue
-     * @param bool     $pAlreadyHashed If the password has already been hashed, set this to true
+     * @param string $pValue
+     * @param bool $pAlreadyHashed If the password has already been hashed, set this to true
+     *
      * @return Security
      */
-    public function setRevisionsPassword($pValue = '', $pAlreadyHashed = false)
+    public function setRevisionsPassword($pValue, $pAlreadyHashed = false)
     {
         if (!$pAlreadyHashed) {
-            $pValue = \PhpOffice\PhpSpreadsheet\Shared\PasswordHasher::hashPassword($pValue);
+            $pValue = PasswordHasher::hashPassword($pValue);
         }
         $this->revisionsPassword = $pValue;
 
@@ -177,7 +161,7 @@ class Security
     }
 
     /**
-     * Get WorkbookPassword (hashed)
+     * Get WorkbookPassword (hashed).
      *
      * @return string
      */
@@ -187,16 +171,17 @@ class Security
     }
 
     /**
-     * Set WorkbookPassword
+     * Set WorkbookPassword.
      *
-     * @param string     $pValue
-     * @param bool     $pAlreadyHashed If the password has already been hashed, set this to true
+     * @param string $pValue
+     * @param bool $pAlreadyHashed If the password has already been hashed, set this to true
+     *
      * @return Security
      */
-    public function setWorkbookPassword($pValue = '', $pAlreadyHashed = false)
+    public function setWorkbookPassword($pValue, $pAlreadyHashed = false)
     {
         if (!$pAlreadyHashed) {
-            $pValue = \PhpOffice\PhpSpreadsheet\Shared\PasswordHasher::hashPassword($pValue);
+            $pValue = PasswordHasher::hashPassword($pValue);
         }
         $this->workbookPassword = $pValue;
 

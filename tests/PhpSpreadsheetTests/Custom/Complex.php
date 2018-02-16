@@ -7,8 +7,10 @@ use PhpOffice\PhpSpreadsheet\Exception;
 class Complex
 {
     private $realPart = 0;
+
     private $imaginaryPart = 0;
-    private $suffix = null;
+
+    private $suffix;
 
     public static function _parseComplex($complexNumber)
     {
@@ -53,7 +55,7 @@ class Complex
                 if ($complexParts[8] === '-') {
                     $complexParts[4] = -1;
                 }
-            //    ... or if we have only the real and no imaginary part (in which case our real should be the imaginary)
+                //    ... or if we have only the real and no imaginary part (in which case our real should be the imaginary)
             } else {
                 $complexParts[4] = $complexParts[1];
                 $complexParts[1] = 0;
@@ -62,7 +64,9 @@ class Complex
 
         //    Return real and imaginary parts and suffix as an array, and set a default suffix if user input lazily
         return [$complexParts[1], $complexParts[4], !empty($complexParts[9]) ? $complexParts[9] : 'i'];
-    }    //    function _parseComplex()
+    }
+
+    //    function _parseComplex()
 
     public function __construct($realPart, $imaginaryPart = null, $suffix = 'i')
     {

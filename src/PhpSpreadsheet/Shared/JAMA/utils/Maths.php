@@ -1,6 +1,6 @@
 <?php
 /**
- *    Pythagorean Theorem:
+ *    Pythagorean Theorem:.
  *
  *    a = 3
  *    b = 4
@@ -8,6 +8,11 @@
  *    r = 5
  *
  *    r = sqrt(a^2 + b^2) without under/overflow.
+ *
+ * @param mixed $a
+ * @param mixed $b
+ *
+ * @return float
  */
 function hypo($a, $b)
 {
@@ -22,21 +27,4 @@ function hypo($a, $b)
     }
 
     return $r;
-}    //    function hypo()
-
-/*
- *    Mike Bommarito's version.
- *    Compute n-dimensional hyotheneuse.
- *
-function hypot() {
-    $s = 0;
-    foreach (func_get_args() as $d) {
-        if (is_numeric($d)) {
-            $s += pow($d, 2);
-        } else {
-            throw new \PhpOffice\PhpSpreadsheet\Calculation\Exception(JAMAError(ARGUMENT_TYPE_EXCEPTION));
-        }
-    }
-    return sqrt($s);
 }
-*/

@@ -2,40 +2,11 @@
 
 namespace PhpOffice\PhpSpreadsheet\Shared;
 
-/*
- * PhpSpreadsheet
- *
- * Copyright (c) 2006 - 2016 PhpSpreadsheet
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * @category   PhpSpreadsheet
- * @copyright  Copyright (c) 2006 - 2016 PhpSpreadsheet (https://github.com/PHPOffice/PhpSpreadsheet)
- * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt    LGPL
- * @version    ##VERSION##, ##DATE##
- */
-
-defined('IDENTIFIER_OLE') ||
-    define('IDENTIFIER_OLE', pack('CCCCCCCC', 0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1));
+use PhpOffice\PhpSpreadsheet\Reader\Exception as ReaderException;
 
 class OLERead
 {
     private $data = '';
-
-    // OLE identifier
-    const IDENTIFIER_OLE = IDENTIFIER_OLE;
 
     // Size of a sector = 512 bytes
     const BIG_BLOCK_SIZE = 0x200;
@@ -63,34 +34,85 @@ class OLERead
     const START_BLOCK_POS = 0x74;
     const SIZE_POS = 0x78;
 
-    public $wrkbook = null;
-    public $summaryInformation = null;
-    public $documentSummaryInformation = null;
+    public $wrkbook;
+
+    public $summaryInformation;
+
+    public $documentSummaryInformation;
 
     /**
-     * Read the file
-     *
-     * @param $sFileName string Filename
-     * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
+     * @var int
      */
-    public function read($sFileName)
+    private $numBigBlockDepotBlocks;
+
+    /**
+     * @var int
+     */
+    private $rootStartBlock;
+
+    /**
+     * @var int
+     */
+    private $sbdStartBlock;
+
+    /**
+     * @var int
+     */
+    private $extensionBlock;
+
+    /**
+     * @var int
+     */
+    private $numExtensionBlocks;
+
+    /**
+     * @var string
+     */
+    private $bigBlockChain;
+
+    /**
+     * @var string
+     */
+    private $smallBlockChain;
+
+    /**
+     * @var string
+     */
+    private $entry;
+
+    /**
+     * @var int
+     */
+    private $rootentry;
+
+    /**
+     * @var array
+     */
+    private $props = [];
+
+    /**
+     * Read the file.
+     *
+     * @param $pFilename string Filename
+     *
+     * @throws ReaderException
+     */
+    public function read($pFilename)
     {
-        // Check if file exists and is readable
-        if (!is_readable($sFileName)) {
-            throw new \PhpOffice\PhpSpreadsheet\Reader\Exception('Could not open ' . $sFileName . ' for reading! File does not exist, or it is not readable.');
-        }
+        File::assertFile($pFilename);
 
         // Get the file identifier
         // Don't bother reading the whole file until we know it's a valid OLE file
-        $this->data = file_get_contents($sFileName, false, null, 0, 8);
+        $this->data = file_get_contents($pFilename, false, null, 0, 8);
 
         // Check OLE identifier
-        if ($this->data != self::IDENTIFIER_OLE) {
-            throw new \PhpOffice\PhpSpreadsheet\Reader\Exception('The filename ' . $sFileName . ' is not recognised as an OLE file');
+        $identifierOle = pack('CCCCCCCC', 0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1);
+        if ($this->data != $identifierOle) {
+            throw new ReaderException('The filename ' . $pFilename . ' is not recognised as an OLE file');
         }
 
         // Get the file data
-        $this->data = file_get_contents($sFileName);
+        $this->data = file_get_contents($pFilename);
 
         // Total number of sectors used for the SAT
         $this->numBigBlockDepotBlocks = self::getInt4d($this->data, self::NUM_BIG_BLOCK_DEPOT_BLOCKS_POS);
@@ -166,9 +188,10 @@ class OLERead
     }
 
     /**
-     * Extract binary stream data
+     * Extract binary stream data.
      *
      * @param int $stream
+     *
      * @return string
      */
     public function getStream($stream)
@@ -192,32 +215,32 @@ class OLERead
             }
 
             return $streamData;
-        } else {
-            $numBlocks = $this->props[$stream]['size'] / self::BIG_BLOCK_SIZE;
-            if ($this->props[$stream]['size'] % self::BIG_BLOCK_SIZE != 0) {
-                ++$numBlocks;
-            }
-
-            if ($numBlocks == 0) {
-                return '';
-            }
-
-            $block = $this->props[$stream]['startBlock'];
-
-            while ($block != -2) {
-                $pos = ($block + 1) * self::BIG_BLOCK_SIZE;
-                $streamData .= substr($this->data, $pos, self::BIG_BLOCK_SIZE);
-                $block = self::getInt4d($this->bigBlockChain, $block * 4);
-            }
-
-            return $streamData;
         }
+        $numBlocks = $this->props[$stream]['size'] / self::BIG_BLOCK_SIZE;
+        if ($this->props[$stream]['size'] % self::BIG_BLOCK_SIZE != 0) {
+            ++$numBlocks;
+        }
+
+        if ($numBlocks == 0) {
+            return '';
+        }
+
+        $block = $this->props[$stream]['startBlock'];
+
+        while ($block != -2) {
+            $pos = ($block + 1) * self::BIG_BLOCK_SIZE;
+            $streamData .= substr($this->data, $pos, self::BIG_BLOCK_SIZE);
+            $block = self::getInt4d($this->bigBlockChain, $block * 4);
+        }
+
+        return $streamData;
     }
 
     /**
-     * Read a standard stream (by joining sectors using information from SAT)
+     * Read a standard stream (by joining sectors using information from SAT).
      *
      * @param int $bl Sector ID where the stream starts
+     *
      * @return string Data for standard stream
      */
     private function _readData($bl)
@@ -294,20 +317,21 @@ class OLERead
     }
 
     /**
-     * Read 4 bytes of data at specified position
+     * Read 4 bytes of data at specified position.
      *
      * @param string $data
      * @param int $pos
+     *
      * @return int
      */
     private static function getInt4d($data, $pos)
     {
         if (trim($data) == '') {
             // No data provided
-            throw new \PhpOffice\PhpSpreadsheet\Reader\Exception('Parameter data is empty.');
+            throw new ReaderException('Parameter data is empty.');
         } elseif ($pos < 0) {
             // Invalid position
-            throw new \PhpOffice\PhpSpreadsheet\Reader\Exception('Parameter pos=' . $pos . ' is invalid.');
+            throw new ReaderException('Parameter pos=' . $pos . ' is invalid.');
         }
 
         $len = strlen($data);

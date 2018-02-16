@@ -5,11 +5,12 @@ namespace PhpOffice\PhpSpreadsheetTests\Calculation;
 use PhpOffice\PhpSpreadsheet\Calculation\DateTime;
 use PhpOffice\PhpSpreadsheet\Calculation\Functions;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
+use PHPUnit\Framework\TestCase;
 
 /**
- * Class DateTimeTest
+ * Class DateTimeTest.
  */
-class DateTimeTest extends \PHPUnit_Framework_TestCase
+class DateTimeTest extends TestCase
 {
     public function setUp()
     {
@@ -18,13 +19,13 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerDATE
+     *
+     * @param mixed $expectedResult
      */
-    public function testDATE()
+    public function testDATE($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([DateTime::class, 'DATE'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = DateTime::DATE(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerDATE()
@@ -37,7 +38,7 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
         Functions::setReturnDateType(Functions::RETURNDATE_PHP_NUMERIC);
         $result = DateTime::DATE(2012, 1, 31);
         Functions::setReturnDateType(Functions::RETURNDATE_EXCEL);
-        $this->assertEquals(1327968000, $result, null, 1E-8);
+        self::assertEquals(1327968000, $result, null, 1E-8);
     }
 
     public function testDATEtoPHPObject()
@@ -46,11 +47,11 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
         $result = DateTime::DATE(2012, 1, 31);
         Functions::setReturnDateType(Functions::RETURNDATE_EXCEL);
         //    Must return an object...
-        $this->assertTrue(is_object($result));
+        self::assertInternalType('object', $result);
         //    ... of the correct type
-        $this->assertTrue(is_a($result, 'DateTime'));
+        self::assertTrue(is_a($result, 'DateTime'));
         //    ... with the correct value
-        $this->assertEquals($result->format('d-M-Y'), '31-Jan-2012');
+        self::assertEquals($result->format('d-M-Y'), '31-Jan-2012');
     }
 
     public function testDATEwith1904Calendar()
@@ -58,7 +59,7 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
         Date::setExcelCalendar(Date::CALENDAR_MAC_1904);
         $result = DateTime::DATE(1918, 11, 11);
         Date::setExcelCalendar(Date::CALENDAR_WINDOWS_1900);
-        $this->assertEquals($result, 5428);
+        self::assertEquals($result, 5428);
     }
 
     public function testDATEwith1904CalendarError()
@@ -66,18 +67,18 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
         Date::setExcelCalendar(Date::CALENDAR_MAC_1904);
         $result = DateTime::DATE(1901, 1, 31);
         Date::setExcelCalendar(Date::CALENDAR_WINDOWS_1900);
-        $this->assertEquals($result, '#NUM!');
+        self::assertEquals($result, '#NUM!');
     }
 
     /**
      * @dataProvider providerDATEVALUE
+     *
+     * @param mixed $expectedResult
      */
-    public function testDATEVALUE()
+    public function testDATEVALUE($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([DateTime::class, 'DATEVALUE'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = DateTime::DATEVALUE(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerDATEVALUE()
@@ -90,7 +91,7 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
         Functions::setReturnDateType(Functions::RETURNDATE_PHP_NUMERIC);
         $result = DateTime::DATEVALUE('2012-1-31');
         Functions::setReturnDateType(Functions::RETURNDATE_EXCEL);
-        $this->assertEquals(1327968000, $result, null, 1E-8);
+        self::assertEquals(1327968000, $result, null, 1E-8);
     }
 
     public function testDATEVALUEtoPHPObject()
@@ -99,22 +100,22 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
         $result = DateTime::DATEVALUE('2012-1-31');
         Functions::setReturnDateType(Functions::RETURNDATE_EXCEL);
         //    Must return an object...
-        $this->assertTrue(is_object($result));
+        self::assertInternalType('object', $result);
         //    ... of the correct type
-        $this->assertTrue(is_a($result, 'DateTime'));
+        self::assertTrue(is_a($result, 'DateTime'));
         //    ... with the correct value
-        $this->assertEquals($result->format('d-M-Y'), '31-Jan-2012');
+        self::assertEquals($result->format('d-M-Y'), '31-Jan-2012');
     }
 
     /**
      * @dataProvider providerYEAR
+     *
+     * @param mixed $expectedResult
      */
-    public function testYEAR()
+    public function testYEAR($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([DateTime::class, 'YEAR'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = DateTime::YEAR(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerYEAR()
@@ -124,13 +125,13 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerMONTH
+     *
+     * @param mixed $expectedResult
      */
-    public function testMONTH()
+    public function testMONTH($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([DateTime::class, 'MONTHOFYEAR'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = DateTime::MONTHOFYEAR(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerMONTH()
@@ -140,13 +141,13 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerWEEKNUM
+     *
+     * @param mixed $expectedResult
      */
-    public function testWEEKNUM()
+    public function testWEEKNUM($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([DateTime::class, 'WEEKNUM'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = DateTime::WEEKNUM(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerWEEKNUM()
@@ -156,13 +157,13 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerWEEKDAY
+     *
+     * @param mixed $expectedResult
      */
-    public function testWEEKDAY()
+    public function testWEEKDAY($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([DateTime::class, 'WEEKDAY'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = DateTime::WEEKDAY(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerWEEKDAY()
@@ -172,13 +173,18 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerDAY
+     *
+     * @param mixed $expectedResultExcel
+     * @param mixed $expectedResultOpenOffice
      */
-    public function testDAY()
+    public function testDAY($expectedResultExcel, $expectedResultOpenOffice, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([DateTime::class, 'DAYOFMONTH'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $resultExcel = DateTime::DAYOFMONTH(...$args);
+        self::assertEquals($expectedResultExcel, $resultExcel, null, 1E-8);
+
+        Functions::setCompatibilityMode(Functions::COMPATIBILITY_OPENOFFICE);
+        $resultOpenOffice = DateTime::DAYOFMONTH(...$args);
+        self::assertEquals($expectedResultOpenOffice, $resultOpenOffice, null, 1E-8);
     }
 
     public function providerDAY()
@@ -188,13 +194,13 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerTIME
+     *
+     * @param mixed $expectedResult
      */
-    public function testTIME()
+    public function testTIME($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([DateTime::class, 'TIME'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = DateTime::TIME(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerTIME()
@@ -207,7 +213,7 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
         Functions::setReturnDateType(Functions::RETURNDATE_PHP_NUMERIC);
         $result = DateTime::TIME(7, 30, 20);
         Functions::setReturnDateType(Functions::RETURNDATE_EXCEL);
-        $this->assertEquals(27020, $result, null, 1E-8);
+        self::assertEquals(27020, $result, null, 1E-8);
     }
 
     public function testTIMEtoPHPObject()
@@ -216,22 +222,22 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
         $result = DateTime::TIME(7, 30, 20);
         Functions::setReturnDateType(Functions::RETURNDATE_EXCEL);
         //    Must return an object...
-        $this->assertTrue(is_object($result));
+        self::assertInternalType('object', $result);
         //    ... of the correct type
-        $this->assertTrue(is_a($result, 'DateTime'));
+        self::assertTrue(is_a($result, 'DateTime'));
         //    ... with the correct value
-        $this->assertEquals($result->format('H:i:s'), '07:30:20');
+        self::assertEquals($result->format('H:i:s'), '07:30:20');
     }
 
     /**
      * @dataProvider providerTIMEVALUE
+     *
+     * @param mixed $expectedResult
      */
-    public function testTIMEVALUE()
+    public function testTIMEVALUE($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([DateTime::class, 'TIMEVALUE'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = DateTime::TIMEVALUE(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerTIMEVALUE()
@@ -244,7 +250,7 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
         Functions::setReturnDateType(Functions::RETURNDATE_PHP_NUMERIC);
         $result = DateTime::TIMEVALUE('7:30:20');
         Functions::setReturnDateType(Functions::RETURNDATE_EXCEL);
-        $this->assertEquals(23420, $result, null, 1E-8);
+        self::assertEquals(23420, $result, null, 1E-8);
     }
 
     public function testTIMEVALUEtoPHPObject()
@@ -253,22 +259,22 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
         $result = DateTime::TIMEVALUE('7:30:20');
         Functions::setReturnDateType(Functions::RETURNDATE_EXCEL);
         //    Must return an object...
-        $this->assertTrue(is_object($result));
+        self::assertInternalType('object', $result);
         //    ... of the correct type
-        $this->assertTrue(is_a($result, 'DateTime'));
+        self::assertTrue(is_a($result, 'DateTime'));
         //    ... with the correct value
-        $this->assertEquals($result->format('H:i:s'), '07:30:20');
+        self::assertEquals($result->format('H:i:s'), '07:30:20');
     }
 
     /**
      * @dataProvider providerHOUR
+     *
+     * @param mixed $expectedResult
      */
-    public function testHOUR()
+    public function testHOUR($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([DateTime::class, 'HOUROFDAY'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = DateTime::HOUROFDAY(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerHOUR()
@@ -278,13 +284,13 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerMINUTE
+     *
+     * @param mixed $expectedResult
      */
-    public function testMINUTE()
+    public function testMINUTE($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([DateTime::class, 'MINUTE'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = DateTime::MINUTE(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerMINUTE()
@@ -294,13 +300,13 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerSECOND
+     *
+     * @param mixed $expectedResult
      */
-    public function testSECOND()
+    public function testSECOND($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([DateTime::class, 'SECOND'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = DateTime::SECOND(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerSECOND()
@@ -310,13 +316,13 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerNETWORKDAYS
+     *
+     * @param mixed $expectedResult
      */
-    public function testNETWORKDAYS()
+    public function testNETWORKDAYS($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([DateTime::class, 'NETWORKDAYS'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = DateTime::NETWORKDAYS(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerNETWORKDAYS()
@@ -326,13 +332,13 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerWORKDAY
+     *
+     * @param mixed $expectedResult
      */
-    public function testWORKDAY()
+    public function testWORKDAY($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([DateTime::class, 'WORKDAY'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = DateTime::WORKDAY(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerWORKDAY()
@@ -342,13 +348,13 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerEDATE
+     *
+     * @param mixed $expectedResult
      */
-    public function testEDATE()
+    public function testEDATE($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([DateTime::class, 'EDATE'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = DateTime::EDATE(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerEDATE()
@@ -361,7 +367,7 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
         Functions::setReturnDateType(Functions::RETURNDATE_PHP_NUMERIC);
         $result = DateTime::EDATE('2012-1-26', -1);
         Functions::setReturnDateType(Functions::RETURNDATE_EXCEL);
-        $this->assertEquals(1324857600, $result, null, 1E-8);
+        self::assertEquals(1324857600, $result, null, 1E-8);
     }
 
     public function testEDATEtoPHPObject()
@@ -370,22 +376,22 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
         $result = DateTime::EDATE('2012-1-26', -1);
         Functions::setReturnDateType(Functions::RETURNDATE_EXCEL);
         //    Must return an object...
-        $this->assertTrue(is_object($result));
+        self::assertInternalType('object', $result);
         //    ... of the correct type
-        $this->assertTrue(is_a($result, 'DateTime'));
+        self::assertTrue(is_a($result, 'DateTime'));
         //    ... with the correct value
-        $this->assertEquals($result->format('d-M-Y'), '26-Dec-2011');
+        self::assertEquals($result->format('d-M-Y'), '26-Dec-2011');
     }
 
     /**
      * @dataProvider providerEOMONTH
+     *
+     * @param mixed $expectedResult
      */
-    public function testEOMONTH()
+    public function testEOMONTH($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([DateTime::class, 'EOMONTH'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = DateTime::EOMONTH(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerEOMONTH()
@@ -398,7 +404,7 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
         Functions::setReturnDateType(Functions::RETURNDATE_PHP_NUMERIC);
         $result = DateTime::EOMONTH('2012-1-26', -1);
         Functions::setReturnDateType(Functions::RETURNDATE_EXCEL);
-        $this->assertEquals(1325289600, $result, null, 1E-8);
+        self::assertEquals(1325289600, $result, null, 1E-8);
     }
 
     public function testEOMONTHtoPHPObject()
@@ -407,22 +413,22 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
         $result = DateTime::EOMONTH('2012-1-26', -1);
         Functions::setReturnDateType(Functions::RETURNDATE_EXCEL);
         //    Must return an object...
-        $this->assertTrue(is_object($result));
+        self::assertInternalType('object', $result);
         //    ... of the correct type
-        $this->assertTrue(is_a($result, 'DateTime'));
+        self::assertTrue(is_a($result, 'DateTime'));
         //    ... with the correct value
-        $this->assertEquals($result->format('d-M-Y'), '31-Dec-2011');
+        self::assertEquals($result->format('d-M-Y'), '31-Dec-2011');
     }
 
     /**
      * @dataProvider providerDATEDIF
+     *
+     * @param mixed $expectedResult
      */
-    public function testDATEDIF()
+    public function testDATEDIF($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([DateTime::class, 'DATEDIF'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = DateTime::DATEDIF(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerDATEDIF()
@@ -432,13 +438,13 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerDAYS360
+     *
+     * @param mixed $expectedResult
      */
-    public function testDAYS360()
+    public function testDAYS360($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([DateTime::class, 'DAYS360'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = DateTime::DAYS360(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerDAYS360()
@@ -448,13 +454,13 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerYEARFRAC
+     *
+     * @param mixed $expectedResult
      */
-    public function testYEARFRAC()
+    public function testYEARFRAC($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([DateTime::class, 'YEARFRAC'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = DateTime::YEARFRAC(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerYEARFRAC()

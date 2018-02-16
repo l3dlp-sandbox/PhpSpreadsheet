@@ -4,11 +4,12 @@ namespace PhpOffice\PhpSpreadsheetTests\Calculation;
 
 use PhpOffice\PhpSpreadsheet\Calculation\Functions;
 use PhpOffice\PhpSpreadsheet\Calculation\LookupRef;
+use PHPUnit\Framework\TestCase;
 
 /**
- * Class LookupRefTest
+ * Class LookupRefTest.
  */
-class LookupRefTest extends \PHPUnit_Framework_TestCase
+class LookupRefTest extends TestCase
 {
     public function setUp()
     {
@@ -17,14 +18,13 @@ class LookupRefTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerHLOOKUP
-     * @group fail19
+     *
+     * @param mixed $expectedResult
      */
-    public function testHLOOKUP()
+    public function testHLOOKUP($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([LookupRef::class, 'HLOOKUP'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = LookupRef::HLOOKUP(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerHLOOKUP()
@@ -34,18 +34,81 @@ class LookupRefTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerVLOOKUP
-     * @group fail19
+     *
+     * @param mixed $expectedResult
      */
-    public function testVLOOKUP()
+    public function testVLOOKUP($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([LookupRef::class, 'VLOOKUP'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = LookupRef::VLOOKUP(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerVLOOKUP()
     {
         return require 'data/Calculation/LookupRef/VLOOKUP.php';
+    }
+
+    /**
+     * @dataProvider providerMATCH
+     *
+     * @param mixed $expectedResult
+     */
+    public function testMATCH($expectedResult, ...$args)
+    {
+        $result = LookupRef::MATCH(...$args);
+        self::assertEquals($expectedResult, $result);
+    }
+
+    public function providerMATCH()
+    {
+        return require 'data/Calculation/LookupRef/MATCH.php';
+    }
+
+    /**
+     * @dataProvider providerINDEX
+     *
+     * @param mixed $expectedResult
+     */
+    public function testINDEX($expectedResult, ...$args)
+    {
+        $result = LookupRef::INDEX(...$args);
+        self::assertEquals($expectedResult, $result);
+    }
+
+    public function providerINDEX()
+    {
+        return require 'data/Calculation/LookupRef/INDEX.php';
+    }
+
+    /**
+     * @dataProvider providerCOLUMNS
+     *
+     * @param mixed $expectedResult
+     */
+    public function testCOLUMNS($expectedResult, ...$args)
+    {
+        $result = LookupRef::COLUMNS(...$args);
+        self::assertEquals($expectedResult, $result);
+    }
+
+    public function providerCOLUMNS()
+    {
+        return require 'data/Calculation/LookupRef/COLUMNS.php';
+    }
+
+    /**
+     * @dataProvider providerROWS
+     *
+     * @param mixed $expectedResult
+     */
+    public function testROWS($expectedResult, ...$args)
+    {
+        $result = LookupRef::ROWS(...$args);
+        self::assertEquals($expectedResult, $result);
+    }
+
+    public function providerROWS()
+    {
+        return require 'data/Calculation/LookupRef/ROWS.php';
     }
 }

@@ -2,42 +2,29 @@
 
 namespace PhpOffice\PhpSpreadsheet\Writer\Xls;
 
-/**
- * Copyright (c) 2006 - 2015 PhpSpreadsheet
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * @category   PhpSpreadsheet
- * @copyright  Copyright (c) 2006 - 2015 PhpSpreadsheet (https://github.com/PHPOffice/PhpSpreadsheet)
- * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt    LGPL
- * @version    ##VERSION##, ##DATE##
- */
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Shared\Escher\DgContainer;
+use PhpOffice\PhpSpreadsheet\Shared\Escher\DgContainer\SpgrContainer;
+use PhpOffice\PhpSpreadsheet\Shared\Escher\DgContainer\SpgrContainer\SpContainer;
+use PhpOffice\PhpSpreadsheet\Shared\Escher\DggContainer;
+use PhpOffice\PhpSpreadsheet\Shared\Escher\DggContainer\BstoreContainer;
+use PhpOffice\PhpSpreadsheet\Shared\Escher\DggContainer\BstoreContainer\BSE;
+use PhpOffice\PhpSpreadsheet\Shared\Escher\DggContainer\BstoreContainer\BSE\Blip;
+
 class Escher
 {
     /**
-     * The object we are writing
+     * The object we are writing.
      */
     private $object;
 
     /**
-     * The written binary data
+     * The written binary data.
      */
     private $data;
 
     /**
-     * Shape offsets. Positions in binary stream where a new shape record begins
+     * Shape offsets. Positions in binary stream where a new shape record begins.
      *
      * @var array
      */
@@ -51,9 +38,9 @@ class Escher
     private $spTypes;
 
     /**
-     * Constructor
+     * Constructor.
      *
-     * @param mixed
+     * @param mixed $object
      */
     public function __construct($object)
     {
@@ -61,7 +48,8 @@ class Escher
     }
 
     /**
-     * Process the object to be written
+     * Process the object to be written.
+     *
      * @return string
      */
     public function close()
@@ -70,7 +58,7 @@ class Escher
         $this->data = '';
 
         switch (get_class($this->object)) {
-            case '\\PhpOffice\\PhpSpreadsheet\\Shared\\Escher':
+            case \PhpOffice\PhpSpreadsheet\Shared\Escher::class:
                 if ($dggContainer = $this->object->getDggContainer()) {
                     $writer = new self($dggContainer);
                     $this->data = $writer->close();
@@ -80,8 +68,9 @@ class Escher
                     $this->spOffsets = $writer->getSpOffsets();
                     $this->spTypes = $writer->getSpTypes();
                 }
+
                 break;
-            case '\\PhpOffice\\PhpSpreadsheet\\Shared\\Escher\\DggContainer':
+            case DggContainer::class:
                 // this is a container record
 
                 // initialize
@@ -133,8 +122,9 @@ class Escher
                 $header = pack('vvV', $recVerInstance, $recType, $length);
 
                 $this->data = $header . $innerData;
+
                 break;
-            case '\\PhpOffice\\PhpSpreadsheet\\Shared\\Escher\\DggContainer\\BstoreContainer':
+            case BstoreContainer::class:
                 // this is a container record
 
                 // initialize
@@ -160,8 +150,9 @@ class Escher
                 $header = pack('vvV', $recVerInstance, $recType, $length);
 
                 $this->data = $header . $innerData;
+
                 break;
-            case '\\PhpOffice\\PhpSpreadsheet\\Shared\\Escher\\DggContainer\\BstoreContainer\\BSE':
+            case BSE::class:
                 // this is a semi-container record
 
                 // initialize
@@ -209,13 +200,14 @@ class Escher
                 $this->data = $header;
 
                 $this->data .= $data;
+
                 break;
-            case '\\PhpOffice\\PhpSpreadsheet\\Shared\\Escher\\DggContainer\\BstoreContainer\\BSE\\Blip':
+            case Blip::class:
                 // this is an atom record
 
                 // write the record
                 switch ($this->object->getParent()->getBlipType()) {
-                    case \PhpOffice\PhpSpreadsheet\Shared\Escher\DggContainer\BstoreContainer\BSE::BLIPTYPE_JPEG:
+                    case BSE::BLIPTYPE_JPEG:
                         // initialize
                         $innerData = '';
 
@@ -240,9 +232,9 @@ class Escher
                         $this->data = $header;
 
                         $this->data .= $innerData;
-                        break;
 
-                    case \PhpOffice\PhpSpreadsheet\Shared\Escher\DggContainer\BstoreContainer\BSE::BLIPTYPE_PNG:
+                        break;
+                    case BSE::BLIPTYPE_PNG:
                         // initialize
                         $innerData = '';
 
@@ -267,10 +259,12 @@ class Escher
                         $this->data = $header;
 
                         $this->data .= $innerData;
+
                         break;
                 }
+
                 break;
-            case '\\PhpOffice\\PhpSpreadsheet\\Shared\\Escher\\DgContainer':
+            case DgContainer::class:
                 // this is a container record
 
                 // initialize
@@ -321,8 +315,9 @@ class Escher
                 $header = pack('vvV', $recVerInstance, $recType, $length);
 
                 $this->data = $header . $innerData;
+
                 break;
-            case '\\PhpOffice\\PhpSpreadsheet\\Shared\\Escher\\DgContainer\\SpgrContainer':
+            case SpgrContainer::class:
                 // this is a container record
 
                 // initialize
@@ -360,8 +355,9 @@ class Escher
                 $this->data = $header . $innerData;
                 $this->spOffsets = $spOffsets;
                 $this->spTypes = $spTypes;
+
                 break;
-            case '\\PhpOffice\\PhpSpreadsheet\\Shared\\Escher\\DgContainer\\SpgrContainer\\SpContainer':
+            case SpContainer::class:
                 // initialize
                 $data = '';
 
@@ -424,8 +420,8 @@ class Escher
                     $recType = 0xF010;
 
                     // start coordinates
-                    list($column, $row) = \PhpOffice\PhpSpreadsheet\Cell::coordinateFromString($this->object->getStartCoordinates());
-                    $c1 = \PhpOffice\PhpSpreadsheet\Cell::columnIndexFromString($column) - 1;
+                    list($column, $row) = Coordinate::coordinateFromString($this->object->getStartCoordinates());
+                    $c1 = Coordinate::columnIndexFromString($column) - 1;
                     $r1 = $row - 1;
 
                     // start offsetX
@@ -435,8 +431,8 @@ class Escher
                     $startOffsetY = $this->object->getStartOffsetY();
 
                     // end coordinates
-                    list($column, $row) = \PhpOffice\PhpSpreadsheet\Cell::coordinateFromString($this->object->getEndCoordinates());
-                    $c2 = \PhpOffice\PhpSpreadsheet\Cell::columnIndexFromString($column) - 1;
+                    list($column, $row) = Coordinate::coordinateFromString($this->object->getEndCoordinates());
+                    $c2 = Coordinate::columnIndexFromString($column) - 1;
                     $r2 = $row - 1;
 
                     // end offsetX
@@ -485,6 +481,7 @@ class Escher
                 $header = pack('vvV', $recVerInstance, $recType, $length);
 
                 $this->data = $header . $data;
+
                 break;
         }
 
@@ -492,7 +489,7 @@ class Escher
     }
 
     /**
-     * Gets the shape offsets
+     * Gets the shape offsets.
      *
      * @return array
      */
@@ -502,7 +499,7 @@ class Escher
     }
 
     /**
-     * Gets the shape types
+     * Gets the shape types.
      *
      * @return array
      */

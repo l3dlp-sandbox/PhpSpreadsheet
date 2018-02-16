@@ -4,11 +4,22 @@ namespace PhpOffice\PhpSpreadsheet\Helper;
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\IWriter;
+use PhpOffice\PhpSpreadsheet\Writer\Pdf;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RecursiveRegexIterator;
+use ReflectionClass;
+use RegexIterator;
 
+/**
+ * Helper class to be used in sample code.
+ */
 class Sample
 {
     /**
-     * Returns wether we run on CLI or browser
+     * Returns whether we run on CLI or browser.
+     *
      * @return bool
      */
     public function isCli()
@@ -17,7 +28,8 @@ class Sample
     }
 
     /**
-     * Return the filename currently being executed
+     * Return the filename currently being executed.
+     *
      * @return string
      */
     public function getScriptFilename()
@@ -26,7 +38,8 @@ class Sample
     }
 
     /**
-     * Wether we are executing the index page
+     * Whether we are executing the index page.
+     *
      * @return bool
      */
     public function isIndex()
@@ -35,7 +48,8 @@ class Sample
     }
 
     /**
-     * Return the page title
+     * Return the page title.
+     *
      * @return string
      */
     public function getPageTitle()
@@ -44,7 +58,8 @@ class Sample
     }
 
     /**
-     * Return the page heading
+     * Return the page heading.
+     *
      * @return string
      */
     public function getPageHeading()
@@ -53,80 +68,107 @@ class Sample
     }
 
     /**
-     * Returns an array of all known samples
+     * Returns an array of all known samples.
+     *
      * @return string[] [$name => $path]
      */
     public function getSamples()
     {
         // Populate samples
+        $baseDir = realpath(__DIR__ . '/../../../samples');
+        $directory = new RecursiveDirectoryIterator($baseDir);
+        $iterator = new RecursiveIteratorIterator($directory);
+        $regex = new RegexIterator($iterator, '/^.+\.php$/', RecursiveRegexIterator::GET_MATCH);
+
         $files = [];
-        foreach (glob(realpath(__DIR__ . '/../../../samples') . '/*.php') as $file) {
+        foreach ($regex as $file) {
+            $file = str_replace($baseDir . '/', '', $file[0]);
             $info = pathinfo($file);
+            $category = str_replace('_', ' ', $info['dirname']);
             $name = str_replace('_', ' ', preg_replace('/(|\.php)/', '', $info['filename']));
-            if (preg_match('/^\d+/', $name)) {
-                $files[$name] = $file;
+            if (!in_array($category, ['.', 'boostrap', 'templates'])) {
+                if (!isset($files[$category])) {
+                    $files[$category] = [];
+                }
+                $files[$category][$name] = $file;
             }
+        }
+
+        // Sort everything
+        ksort($files);
+        foreach ($files as &$f) {
+            asort($f);
         }
 
         return $files;
     }
 
     /**
-     * Write documents
+     * Write documents.
      *
      * @param Spreadsheet $spreadsheet
      * @param string $filename
-     * @param array $writers
+     * @param string[] $writers
      */
-    public function write(Spreadsheet $spreadsheet, $filename, array $writers = ['Xlsx' => 'xlsx', 'Xls' => 'xls'])
+    public function write(Spreadsheet $spreadsheet, $filename, array $writers = ['Xlsx', 'Xls'])
     {
         // Set active sheet index to the first sheet, so Excel opens this as the first sheet
         $spreadsheet->setActiveSheetIndex(0);
 
         // Write documents
-        foreach ($writers as $format => $extension) {
-            $path = $this->getFilename($filename, $extension);
-            if (!is_null($extension)) {
-                $writer = IOFactory::createWriter($spreadsheet, $format);
-                $callStartTime = microtime(true);
-                $writer->save($path);
-                $this->logWrite($writer, $path, $callStartTime);
-            } else {
-                throw new \Exception('Missing extension');
+        foreach ($writers as $writerType) {
+            $path = $this->getFilename($filename, mb_strtolower($writerType));
+            $writer = IOFactory::createWriter($spreadsheet, $writerType);
+            if ($writer instanceof Pdf) {
+                // PDF writer needs temporary directory
+                $tempDir = $this->getTemporaryFolder();
+                $writer->setTempDir($tempDir);
             }
+            $callStartTime = microtime(true);
+            $writer->save($path);
+            $this->logWrite($writer, $path, $callStartTime);
         }
 
         $this->logEndingNotes();
     }
 
     /**
-     * Returns the temporary directory and make sure it exists
+     * Returns the temporary directory and make sure it exists.
+     *
      * @return string
      */
     private function getTemporaryFolder()
     {
         $tempFolder = sys_get_temp_dir() . '/phpspreadsheet';
         if (!is_dir($tempFolder)) {
-            mkdir($tempFolder);
+            if (!mkdir($tempFolder) && !is_dir($tempFolder)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $tempFolder));
+            }
         }
 
         return $tempFolder;
     }
 
     /**
-     * Returns the filename that should be used for sample output
+     * Returns the filename that should be used for sample output.
+     *
      * @param string $filename
      * @param string $extension
+     *
      * @return string
      */
     public function getFilename($filename, $extension = 'xlsx')
     {
-        return $this->getTemporaryFolder() . '/' . str_replace('.php', '.' . $extension, basename($filename));
+        $originalExtension = pathinfo($filename, PATHINFO_EXTENSION);
+
+        return $this->getTemporaryFolder() . '/' . str_replace('.' . $originalExtension, '.' . $extension, basename($filename));
     }
 
     /**
-     * Return a random temporary file name
+     * Return a random temporary file name.
+     *
      * @param string $extension
+     *
      * @return string
      */
     public function getTemporaryFilename($extension = 'xlsx')
@@ -139,11 +181,12 @@ class Sample
 
     public function log($message)
     {
-        echo date('H:i:s '), $message, EOL;
+        $eol = $this->isCli() ? PHP_EOL : '<br />';
+        echo date('H:i:s ') . $message . $eol;
     }
 
     /**
-     * Log ending notes
+     * Log ending notes.
      */
     public function logEndingNotes()
     {
@@ -152,16 +195,17 @@ class Sample
     }
 
     /**
-     * Log a line about the write operation
-     * @param \PhpOffice\PhpSpreadsheet\Writer\IWriter $writer
+     * Log a line about the write operation.
+     *
+     * @param IWriter $writer
      * @param string $path
      * @param float $callStartTime
      */
-    public function logWrite(\PhpOffice\PhpSpreadsheet\Writer\IWriter $writer, $path, $callStartTime)
+    public function logWrite(IWriter $writer, $path, $callStartTime)
     {
         $callEndTime = microtime(true);
         $callTime = $callEndTime - $callStartTime;
-        $reflection = new \ReflectionClass($writer);
+        $reflection = new ReflectionClass($writer);
         $format = $reflection->getShortName();
         $message = "Write {$format} format to <code>{$path}</code>  in " . sprintf('%.4f', $callTime) . ' seconds';
 
@@ -169,7 +213,8 @@ class Sample
     }
 
     /**
-     * Log a line about the read operation
+     * Log a line about the read operation.
+     *
      * @param string $format
      * @param string $path
      * @param float $callStartTime

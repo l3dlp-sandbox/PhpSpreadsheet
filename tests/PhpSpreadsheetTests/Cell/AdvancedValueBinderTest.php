@@ -2,29 +2,19 @@
 
 namespace PhpOffice\PhpSpreadsheetTests\Cell;
 
-use PhpOffice\PhpSpreadsheet\CachedObjectStorage\Memory;
-use PhpOffice\PhpSpreadsheet\Cell;
 use PhpOffice\PhpSpreadsheet\Cell\AdvancedValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Collection\Cells;
 use PhpOffice\PhpSpreadsheet\Shared\StringHelper;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
-use PhpOffice\PhpSpreadsheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PHPUnit\Framework\TestCase;
 
-class AdvancedValueBinderTest extends \PHPUnit_Framework_TestCase
+class AdvancedValueBinderTest extends TestCase
 {
-    public function setUp()
-    {
-        if (!defined('PHPSPREADSHEET_ROOT')) {
-            define('PHPSPREADSHEET_ROOT', APPLICATION_PATH . '/');
-        }
-        require_once PHPSPREADSHEET_ROOT . '/Bootstrap.php';
-    }
-
     public function provider()
     {
-        if (!class_exists(NumberFormat::class)) {
-            $this->setUp();
-        }
         $currencyUSD = NumberFormat::FORMAT_CURRENCY_USD_SIMPLE;
         $currencyEURO = str_replace('$', '€', NumberFormat::FORMAT_CURRENCY_USD_SIMPLE);
 
@@ -42,33 +32,39 @@ class AdvancedValueBinderTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider provider
+     *
+     * @param mixed $value
+     * @param mixed $valueBinded
+     * @param mixed $format
+     * @param mixed $thousandsSeparator
+     * @param mixed $decimalSeparator
+     * @param mixed $currencyCode
      */
     public function testCurrency($value, $valueBinded, $format, $thousandsSeparator, $decimalSeparator, $currencyCode)
     {
-        $sheet = $this->getMock(
-            Worksheet::class,
-            ['getStyle', 'getNumberFormat', 'setFormatCode', 'getCellCacheController']
-        );
-        $cache = $this->getMockBuilder(Memory::class)
+        $sheet = $this->getMockBuilder(Worksheet::class)
+            ->setMethods(['getStyle', 'getNumberFormat', 'setFormatCode', 'getCellCollection'])
+            ->getMock();
+        $cellCollection = $this->getMockBuilder(Cells::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $cache->expects($this->any())
-                 ->method('getParent')
-                 ->will($this->returnValue($sheet));
+        $cellCollection->expects($this->any())
+            ->method('getParent')
+            ->will($this->returnValue($sheet));
 
         $sheet->expects($this->once())
-                 ->method('getStyle')
-                 ->will($this->returnSelf());
+            ->method('getStyle')
+            ->will($this->returnSelf());
         $sheet->expects($this->once())
-                 ->method('getNumberFormat')
-                 ->will($this->returnSelf());
+            ->method('getNumberFormat')
+            ->will($this->returnSelf());
         $sheet->expects($this->once())
-                 ->method('setFormatCode')
-                 ->with($format)
-                 ->will($this->returnSelf());
+            ->method('setFormatCode')
+            ->with($format)
+            ->will($this->returnSelf());
         $sheet->expects($this->any())
-                 ->method('getCellCacheController')
-                 ->will($this->returnValue($cache));
+            ->method('getCellCollection')
+            ->will($this->returnValue($cellCollection));
 
         StringHelper::setCurrencyCode($currencyCode);
         StringHelper::setDecimalSeparator($decimalSeparator);
@@ -78,6 +74,6 @@ class AdvancedValueBinderTest extends \PHPUnit_Framework_TestCase
 
         $binder = new AdvancedValueBinder();
         $binder->bindValue($cell, $value);
-        $this->assertEquals($valueBinded, $cell->getValue());
+        self::assertEquals($valueBinded, $cell->getValue());
     }
 }

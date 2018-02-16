@@ -2,54 +2,26 @@
 
 namespace PhpOffice\PhpSpreadsheet\Shared;
 
-if (!defined('DATE_W3C')) {
-    define('DATE_W3C', 'Y-m-d\TH:i:sP');
-}
-
-if (!defined('DEBUGMODE_ENABLED')) {
-    define('DEBUGMODE_ENABLED', false);
-}
-
-/**
- * Copyright (c) 2006 - 2016 PhpSpreadsheet
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * @category   PhpSpreadsheet
- * @copyright  Copyright (c) 2006 - 2016 PhpSpreadsheet (https://github.com/PHPOffice/PhpSpreadsheet)
- * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt    LGPL
- * @version    ##VERSION##, ##DATE##
- */
 class XMLWriter extends \XMLWriter
 {
+    public static $debugEnabled = false;
+
     /** Temporary storage method */
     const STORAGE_MEMORY = 1;
     const STORAGE_DISK = 2;
 
     /**
-     * Temporary filename
+     * Temporary filename.
      *
      * @var string
      */
     private $tempFileName = '';
 
     /**
-     * Create a new XMLWriter instance
+     * Create a new XMLWriter instance.
      *
-     * @param int      $pTemporaryStorage        Temporary storage location
-     * @param string   $pTemporaryStorageFolder  Temporary storage folder
+     * @param int $pTemporaryStorage Temporary storage location
+     * @param string $pTemporaryStorageFolder Temporary storage folder
      */
     public function __construct($pTemporaryStorage = self::STORAGE_MEMORY, $pTemporaryStorageFolder = null)
     {
@@ -71,13 +43,13 @@ class XMLWriter extends \XMLWriter
         }
 
         // Set default values
-        if (DEBUGMODE_ENABLED) {
+        if (self::$debugEnabled) {
             $this->setIndent(true);
         }
     }
 
     /**
-     * Destructor
+     * Destructor.
      */
     public function __destruct()
     {
@@ -88,25 +60,25 @@ class XMLWriter extends \XMLWriter
     }
 
     /**
-     * Get written data
+     * Get written data.
      *
-     * @return $data
+     * @return string
      */
     public function getData()
     {
         if ($this->tempFileName == '') {
             return $this->outputMemory(true);
-        } else {
-            $this->flush();
-
-            return file_get_contents($this->tempFileName);
         }
+        $this->flush();
+
+        return file_get_contents($this->tempFileName);
     }
 
     /**
-     * Fallback method for writeRaw, introduced in PHP 5.2
+     * Wrapper method for writeRaw.
      *
-     * @param string $text
+     * @param string|string[] $text
+     *
      * @return bool
      */
     public function writeRawData($text)
@@ -115,10 +87,6 @@ class XMLWriter extends \XMLWriter
             $text = implode("\n", $text);
         }
 
-        if (method_exists($this, 'writeRaw')) {
-            return $this->writeRaw(htmlspecialchars($text));
-        }
-
-        return $this->text($text);
+        return $this->writeRaw(htmlspecialchars($text));
     }
 }

@@ -4,8 +4,9 @@ namespace PhpOffice\PhpSpreadsheetTests\Style;
 
 use PhpOffice\PhpSpreadsheet\Shared\StringHelper;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use PHPUnit\Framework\TestCase;
 
-class NumberFormatTest extends \PHPUnit_Framework_TestCase
+class NumberFormatTest extends TestCase
 {
     public function setUp()
     {
@@ -15,17 +16,33 @@ class NumberFormatTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerNumberFormat
+     *
+     * @param mixed $expectedResult
      */
-    public function testFormatValueWithMask()
+    public function testFormatValueWithMask($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([NumberFormat::class, 'toFormattedString'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = NumberFormat::toFormattedString(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerNumberFormat()
     {
         return require 'data/Style/NumberFormat.php';
+    }
+
+    /**
+     * @dataProvider providerNumberFormatDates
+     *
+     * @param mixed $expectedResult
+     */
+    public function testFormatValueWithMaskDate($expectedResult, ...$args)
+    {
+        $result = NumberFormat::toFormattedString(...$args);
+        self::assertEquals($expectedResult, $result);
+    }
+
+    public function providerNumberFormatDates()
+    {
+        return require 'data/Style/NumberFormatDates.php';
     }
 }

@@ -2,70 +2,36 @@
 
 namespace PhpOffice\PhpSpreadsheet\Calculation;
 
-/* FINANCIAL_MAX_ITERATIONS */
-define('FINANCIAL_MAX_ITERATIONS', 128);
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
-/* FINANCIAL_PRECISION */
-define('FINANCIAL_PRECISION', 1.0e-08);
-
-/**
- * Copyright (c) 2006 - 2016 PhpSpreadsheet
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
- *
- * @category    PhpSpreadsheet
- * @copyright    Copyright (c) 2006 - 2016 PhpSpreadsheet (https://github.com/PHPOffice/PhpSpreadsheet)
- * @license        http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt    LGPL
- * @version        ##VERSION##, ##DATE##
- */
 class Financial
 {
+    const FINANCIAL_MAX_ITERATIONS = 128;
+
+    const FINANCIAL_PRECISION = 1.0e-08;
+
     /**
-     * isLastDayOfMonth
+     * isLastDayOfMonth.
      *
      * Returns a boolean TRUE/FALSE indicating if this date is the last date of the month
      *
-     * @param    DateTime    $testDate    The date for testing
-     * @return    bool
+     * @param \DateTime $testDate The date for testing
+     *
+     * @return bool
      */
-    private static function isLastDayOfMonth($testDate)
+    private static function isLastDayOfMonth(\DateTime $testDate)
     {
         return $testDate->format('d') == $testDate->format('t');
-    }
-
-    /**
-     * isFirstDayOfMonth
-     *
-     * Returns a boolean TRUE/FALSE indicating if this date is the first date of the month
-     *
-     * @param    DateTime    $testDate    The date for testing
-     * @return    bool
-     */
-    private static function isFirstDayOfMonth($testDate)
-    {
-        return $testDate->format('d') == 1;
     }
 
     private static function couponFirstPeriodDate($settlement, $maturity, $frequency, $next)
     {
         $months = 12 / $frequency;
 
-        $result = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($maturity);
+        $result = Date::excelToDateTimeObject($maturity);
         $eom = self::isLastDayOfMonth($result);
 
-        while ($settlement < \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel($result)) {
+        while ($settlement < Date::PHPToExcel($result)) {
             $result->modify('-' . $months . ' months');
         }
         if ($next) {
@@ -76,7 +42,7 @@ class Financial
             $result->modify('-1 day');
         }
 
-        return \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel($result);
+        return Date::PHPToExcel($result);
     }
 
     private static function isValidFrequency($frequency)
@@ -93,18 +59,19 @@ class Financial
     }
 
     /**
-     * daysPerYear
+     * daysPerYear.
      *
      * Returns the number of days in a specified year, as defined by the "basis" value
      *
-     * @param    int        $year    The year against which we're testing
-     * @param   int        $basis    The type of day count:
+     * @param int $year The year against which we're testing
+     * @param int $basis The type of day count:
      *                                    0 or omitted US (NASD)    360
      *                                    1                        Actual (365 or 366 in a leap year)
      *                                    2                        360
      *                                    3                        365
      *                                    4                        European 360
-     * @return    int
+     *
+     * @return int
      */
     private static function daysPerYear($year, $basis = 0)
     {
@@ -113,12 +80,15 @@ class Financial
             case 2:
             case 4:
                 $daysPerYear = 360;
+
                 break;
             case 3:
                 $daysPerYear = 365;
+
                 break;
             case 1:
                 $daysPerYear = (DateTime::isLeapYear($year)) ? 366 : 365;
+
                 break;
             default:
                 return Functions::NAN();
@@ -141,7 +111,7 @@ class Financial
     }
 
     /**
-     * ACCRINT
+     * ACCRINT.
      *
      * Returns the accrued interest for a security that pays periodic interest.
      *
@@ -149,15 +119,16 @@ class Financial
      *        ACCRINT(issue,firstinterest,settlement,rate,par,frequency[,basis])
      *
      * @category Financial Functions
-     * @param    mixed    $issue            The security's issue date.
-     * @param    mixed    $firstinterest    The security's first interest date.
-     * @param    mixed    $settlement        The security's settlement date.
+     *
+     * @param mixed $issue the security's issue date
+     * @param mixed $firstinterest the security's first interest date
+     * @param mixed $settlement The security's settlement date.
      *                                    The security settlement date is the date after the issue date
      *                                    when the security is traded to the buyer.
-     * @param    float    $rate            The security's annual coupon rate.
-     * @param    float    $par            The security's par value.
+     * @param float $rate the security's annual coupon rate
+     * @param float $par The security's par value.
      *                                    If you omit par, ACCRINT uses $1,000.
-     * @param    int    $frequency        the number of coupon payments per year.
+     * @param int $frequency the number of coupon payments per year.
      *                                    Valid frequency values are:
      *                                        1    Annual
      *                                        2    Semi-Annual
@@ -166,13 +137,14 @@ class Financial
      *                                    also available
      *                                        6    Bimonthly
      *                                        12    Monthly
-     * @param    int    $basis            The type of day count to use.
+     * @param int $basis The type of day count to use.
      *                                        0 or omitted    US (NASD) 30/360
      *                                        1                Actual/actual
      *                                        2                Actual/360
      *                                        3                Actual/365
      *                                        4                European 30/360
-     * @return    float
+     *
+     * @return float
      */
     public static function ACCRINT($issue, $firstinterest, $settlement, $rate, $par = 1000, $frequency = 1, $basis = 0)
     {
@@ -180,9 +152,9 @@ class Financial
         $firstinterest = Functions::flattenSingleValue($firstinterest);
         $settlement = Functions::flattenSingleValue($settlement);
         $rate = Functions::flattenSingleValue($rate);
-        $par = (is_null($par)) ? 1000 : Functions::flattenSingleValue($par);
-        $frequency = (is_null($frequency)) ? 1 : Functions::flattenSingleValue($frequency);
-        $basis = (is_null($basis)) ? 0 : Functions::flattenSingleValue($basis);
+        $par = ($par === null) ? 1000 : Functions::flattenSingleValue($par);
+        $frequency = ($frequency === null) ? 1 : Functions::flattenSingleValue($frequency);
+        $basis = ($basis === null) ? 0 : Functions::flattenSingleValue($basis);
 
         //    Validate
         if ((is_numeric($rate)) && (is_numeric($par))) {
@@ -204,7 +176,7 @@ class Financial
     }
 
     /**
-     * ACCRINTM
+     * ACCRINTM.
      *
      * Returns the accrued interest for a security that pays interest at maturity.
      *
@@ -212,26 +184,28 @@ class Financial
      *        ACCRINTM(issue,settlement,rate[,par[,basis]])
      *
      * @category Financial Functions
-     * @param    mixed    issue        The security's issue date.
-     * @param    mixed    settlement    The security's settlement (or maturity) date.
-     * @param    float    rate        The security's annual coupon rate.
-     * @param    float    par            The security's par value.
+     *
+     * @param mixed $issue The security's issue date
+     * @param mixed $settlement The security's settlement (or maturity) date
+     * @param float $rate The security's annual coupon rate
+     * @param float $par The security's par value.
      *                                    If you omit par, ACCRINT uses $1,000.
-     * @param    int    basis        The type of day count to use.
+     * @param int $basis The type of day count to use.
      *                                        0 or omitted    US (NASD) 30/360
      *                                        1                Actual/actual
      *                                        2                Actual/360
      *                                        3                Actual/365
      *                                        4                European 30/360
-     * @return    float
+     *
+     * @return float
      */
     public static function ACCRINTM($issue, $settlement, $rate, $par = 1000, $basis = 0)
     {
         $issue = Functions::flattenSingleValue($issue);
         $settlement = Functions::flattenSingleValue($settlement);
         $rate = Functions::flattenSingleValue($rate);
-        $par = (is_null($par)) ? 1000 : Functions::flattenSingleValue($par);
-        $basis = (is_null($basis)) ? 0 : Functions::flattenSingleValue($basis);
+        $par = ($par === null) ? 1000 : Functions::flattenSingleValue($par);
+        $basis = ($basis === null) ? 0 : Functions::flattenSingleValue($basis);
 
         //    Validate
         if ((is_numeric($rate)) && (is_numeric($par))) {
@@ -253,7 +227,7 @@ class Financial
     }
 
     /**
-     * AMORDEGRC
+     * AMORDEGRC.
      *
      * Returns the depreciation for each accounting period.
      * This function is provided for the French accounting system. If an asset is purchased in
@@ -268,19 +242,21 @@ class Financial
      *        AMORDEGRC(cost,purchased,firstPeriod,salvage,period,rate[,basis])
      *
      * @category Financial Functions
-     * @param    float    cost        The cost of the asset.
-     * @param    mixed    purchased    Date of the purchase of the asset.
-     * @param    mixed    firstPeriod    Date of the end of the first period.
-     * @param    mixed    salvage        The salvage value at the end of the life of the asset.
-     * @param    float    period        The period.
-     * @param    float    rate        Rate of depreciation.
-     * @param    int    basis        The type of day count to use.
+     *
+     * @param float $cost The cost of the asset
+     * @param mixed $purchased Date of the purchase of the asset
+     * @param mixed $firstPeriod Date of the end of the first period
+     * @param mixed $salvage The salvage value at the end of the life of the asset
+     * @param float $period The period
+     * @param float $rate Rate of depreciation
+     * @param int $basis The type of day count to use.
      *                                        0 or omitted    US (NASD) 30/360
      *                                        1                Actual/actual
      *                                        2                Actual/360
      *                                        3                Actual/365
      *                                        4                European 30/360
-     * @return    float
+     *
+     * @return float
      */
     public static function AMORDEGRC($cost, $purchased, $firstPeriod, $salvage, $period, $rate, $basis = 0)
     {
@@ -290,7 +266,7 @@ class Financial
         $salvage = Functions::flattenSingleValue($salvage);
         $period = floor(Functions::flattenSingleValue($period));
         $rate = Functions::flattenSingleValue($rate);
-        $basis = (is_null($basis)) ? 0 : (int) Functions::flattenSingleValue($basis);
+        $basis = ($basis === null) ? 0 : (int) Functions::flattenSingleValue($basis);
 
         //    The depreciation coefficients are:
         //    Life of assets (1/rate)        Depreciation coefficient
@@ -334,7 +310,7 @@ class Financial
     }
 
     /**
-     * AMORLINC
+     * AMORLINC.
      *
      * Returns the depreciation for each accounting period.
      * This function is provided for the French accounting system. If an asset is purchased in
@@ -344,19 +320,21 @@ class Financial
      *        AMORLINC(cost,purchased,firstPeriod,salvage,period,rate[,basis])
      *
      * @category Financial Functions
-     * @param    float    cost        The cost of the asset.
-     * @param    mixed    purchased    Date of the purchase of the asset.
-     * @param    mixed    firstPeriod    Date of the end of the first period.
-     * @param    mixed    salvage        The salvage value at the end of the life of the asset.
-     * @param    float    period        The period.
-     * @param    float    rate        Rate of depreciation.
-     * @param    int    basis        The type of day count to use.
+     *
+     * @param float $cost The cost of the asset
+     * @param mixed $purchased Date of the purchase of the asset
+     * @param mixed $firstPeriod Date of the end of the first period
+     * @param mixed $salvage The salvage value at the end of the life of the asset
+     * @param float $period The period
+     * @param float $rate Rate of depreciation
+     * @param int $basis The type of day count to use.
      *                                        0 or omitted    US (NASD) 30/360
      *                                        1                Actual/actual
      *                                        2                Actual/360
      *                                        3                Actual/365
      *                                        4                European 30/360
-     * @return    float
+     *
+     * @return float
      */
     public static function AMORLINC($cost, $purchased, $firstPeriod, $salvage, $period, $rate, $basis = 0)
     {
@@ -366,7 +344,7 @@ class Financial
         $salvage = Functions::flattenSingleValue($salvage);
         $period = Functions::flattenSingleValue($period);
         $rate = Functions::flattenSingleValue($rate);
-        $basis = (is_null($basis)) ? 0 : (int) Functions::flattenSingleValue($basis);
+        $basis = ($basis === null) ? 0 : (int) Functions::flattenSingleValue($basis);
 
         $fOneRate = $cost * $rate;
         $fCostDelta = $cost - $salvage;
@@ -379,7 +357,7 @@ class Financial
         }
 
         $f0Rate = $yearFrac * $rate * $cost;
-        $nNumOfFullPeriods = intval(($cost - $salvage - $f0Rate) / $fOneRate);
+        $nNumOfFullPeriods = (int) (($cost - $salvage - $f0Rate) / $fOneRate);
 
         if ($period == 0) {
             return $f0Rate;
@@ -387,13 +365,13 @@ class Financial
             return $fOneRate;
         } elseif ($period == ($nNumOfFullPeriods + 1)) {
             return $fCostDelta - $fOneRate * $nNumOfFullPeriods - $f0Rate;
-        } else {
-            return 0.0;
         }
+
+        return 0.0;
     }
 
     /**
-     * COUPDAYBS
+     * COUPDAYBS.
      *
      * Returns the number of days from the beginning of the coupon period to the settlement date.
      *
@@ -401,12 +379,13 @@ class Financial
      *        COUPDAYBS(settlement,maturity,frequency[,basis])
      *
      * @category Financial Functions
-     * @param    mixed    settlement    The security's settlement date.
+     *
+     * @param mixed $settlement The security's settlement date.
      *                                The security settlement date is the date after the issue
      *                                date when the security is traded to the buyer.
-     * @param    mixed    maturity    The security's maturity date.
+     * @param mixed $maturity The security's maturity date.
      *                                The maturity date is the date when the security expires.
-     * @param    int    frequency    the number of coupon payments per year.
+     * @param int $frequency the number of coupon payments per year.
      *                                    Valid frequency values are:
      *                                        1    Annual
      *                                        2    Semi-Annual
@@ -415,20 +394,21 @@ class Financial
      *                                    also available
      *                                        6    Bimonthly
      *                                        12    Monthly
-     * @param    int        basis        The type of day count to use.
+     * @param int $basis The type of day count to use.
      *                                        0 or omitted    US (NASD) 30/360
      *                                        1                Actual/actual
      *                                        2                Actual/360
      *                                        3                Actual/365
      *                                        4                European 30/360
-     * @return    float
+     *
+     * @return float
      */
     public static function COUPDAYBS($settlement, $maturity, $frequency, $basis = 0)
     {
         $settlement = Functions::flattenSingleValue($settlement);
         $maturity = Functions::flattenSingleValue($maturity);
         $frequency = (int) Functions::flattenSingleValue($frequency);
-        $basis = (is_null($basis)) ? 0 : (int) Functions::flattenSingleValue($basis);
+        $basis = ($basis === null) ? 0 : (int) Functions::flattenSingleValue($basis);
 
         if (is_string($settlement = DateTime::getDateValue($settlement))) {
             return Functions::VALUE();
@@ -450,7 +430,7 @@ class Financial
     }
 
     /**
-     * COUPDAYS
+     * COUPDAYS.
      *
      * Returns the number of days in the coupon period that contains the settlement date.
      *
@@ -458,12 +438,13 @@ class Financial
      *        COUPDAYS(settlement,maturity,frequency[,basis])
      *
      * @category Financial Functions
-     * @param    mixed    settlement    The security's settlement date.
+     *
+     * @param mixed $settlement The security's settlement date.
      *                                The security settlement date is the date after the issue
      *                                date when the security is traded to the buyer.
-     * @param    mixed    maturity    The security's maturity date.
+     * @param mixed $maturity The security's maturity date.
      *                                The maturity date is the date when the security expires.
-     * @param    mixed    frequency    the number of coupon payments per year.
+     * @param mixed $frequency the number of coupon payments per year.
      *                                    Valid frequency values are:
      *                                        1    Annual
      *                                        2    Semi-Annual
@@ -472,21 +453,21 @@ class Financial
      *                                    also available
      *                                        6    Bimonthly
      *                                        12    Monthly
-     * @param    int        basis        The type of day count to use.
+     * @param int $basis The type of day count to use.
      *                                        0 or omitted    US (NASD) 30/360
      *                                        1                Actual/actual
      *                                        2                Actual/360
      *                                        3                Actual/365
      *                                        4                European 30/360
-     * @param int $frequency
-     * @return    float
+     *
+     * @return float
      */
     public static function COUPDAYS($settlement, $maturity, $frequency, $basis = 0)
     {
         $settlement = Functions::flattenSingleValue($settlement);
         $maturity = Functions::flattenSingleValue($maturity);
         $frequency = (int) Functions::flattenSingleValue($frequency);
-        $basis = (is_null($basis)) ? 0 : (int) Functions::flattenSingleValue($basis);
+        $basis = ($basis === null) ? 0 : (int) Functions::flattenSingleValue($basis);
 
         if (is_string($settlement = DateTime::getDateValue($settlement))) {
             return Functions::VALUE();
@@ -520,12 +501,10 @@ class Financial
                 // US (NASD) 30/360, Actual/360 or European 30/360
                 return 360 / $frequency;
         }
-
-        return Functions::VALUE();
     }
 
     /**
-     * COUPDAYSNC
+     * COUPDAYSNC.
      *
      * Returns the number of days from the settlement date to the next coupon date.
      *
@@ -533,12 +512,13 @@ class Financial
      *        COUPDAYSNC(settlement,maturity,frequency[,basis])
      *
      * @category Financial Functions
-     * @param    mixed    settlement    The security's settlement date.
+     *
+     * @param mixed $settlement The security's settlement date.
      *                                The security settlement date is the date after the issue
      *                                date when the security is traded to the buyer.
-     * @param    mixed    maturity    The security's maturity date.
+     * @param mixed $maturity The security's maturity date.
      *                                The maturity date is the date when the security expires.
-     * @param    mixed    frequency    the number of coupon payments per year.
+     * @param mixed $frequency the number of coupon payments per year.
      *                                    Valid frequency values are:
      *                                        1    Annual
      *                                        2    Semi-Annual
@@ -547,20 +527,21 @@ class Financial
      *                                    also available
      *                                        6    Bimonthly
      *                                        12    Monthly
-     * @param    int        basis        The type of day count to use.
+     * @param int $basis The type of day count to use.
      *                                        0 or omitted    US (NASD) 30/360
      *                                        1                Actual/actual
      *                                        2                Actual/360
      *                                        3                Actual/365
      *                                        4                European 30/360
-     * @return    float
+     *
+     * @return float
      */
     public static function COUPDAYSNC($settlement, $maturity, $frequency, $basis = 0)
     {
         $settlement = Functions::flattenSingleValue($settlement);
         $maturity = Functions::flattenSingleValue($maturity);
         $frequency = (int) Functions::flattenSingleValue($frequency);
-        $basis = (is_null($basis)) ? 0 : (int) Functions::flattenSingleValue($basis);
+        $basis = ($basis === null) ? 0 : (int) Functions::flattenSingleValue($basis);
 
         if (is_string($settlement = DateTime::getDateValue($settlement))) {
             return Functions::VALUE();
@@ -582,7 +563,7 @@ class Financial
     }
 
     /**
-     * COUPNCD
+     * COUPNCD.
      *
      * Returns the next coupon date after the settlement date.
      *
@@ -590,12 +571,13 @@ class Financial
      *        COUPNCD(settlement,maturity,frequency[,basis])
      *
      * @category Financial Functions
-     * @param    mixed    settlement    The security's settlement date.
+     *
+     * @param mixed $settlement The security's settlement date.
      *                                The security settlement date is the date after the issue
      *                                date when the security is traded to the buyer.
-     * @param    mixed    maturity    The security's maturity date.
+     * @param mixed $maturity The security's maturity date.
      *                                The maturity date is the date when the security expires.
-     * @param    mixed    frequency    the number of coupon payments per year.
+     * @param mixed $frequency the number of coupon payments per year.
      *                                    Valid frequency values are:
      *                                        1    Annual
      *                                        2    Semi-Annual
@@ -604,13 +586,14 @@ class Financial
      *                                    also available
      *                                        6    Bimonthly
      *                                        12    Monthly
-     * @param    int        basis        The type of day count to use.
+     * @param int $basis The type of day count to use.
      *                                        0 or omitted    US (NASD) 30/360
      *                                        1                Actual/actual
      *                                        2                Actual/360
      *                                        3                Actual/365
      *                                        4                European 30/360
-     * @return    mixed    Excel date/time serial value, PHP date/time serial value or PHP date/time object,
+     *
+     * @return mixed Excel date/time serial value, PHP date/time serial value or PHP date/time object,
      *                        depending on the value of the ReturnDateType flag
      */
     public static function COUPNCD($settlement, $maturity, $frequency, $basis = 0)
@@ -618,7 +601,7 @@ class Financial
         $settlement = Functions::flattenSingleValue($settlement);
         $maturity = Functions::flattenSingleValue($maturity);
         $frequency = (int) Functions::flattenSingleValue($frequency);
-        $basis = (is_null($basis)) ? 0 : (int) Functions::flattenSingleValue($basis);
+        $basis = ($basis === null) ? 0 : (int) Functions::flattenSingleValue($basis);
 
         if (is_string($settlement = DateTime::getDateValue($settlement))) {
             return Functions::VALUE();
@@ -637,7 +620,7 @@ class Financial
     }
 
     /**
-     * COUPNUM
+     * COUPNUM.
      *
      * Returns the number of coupons payable between the settlement date and maturity date,
      * rounded up to the nearest whole coupon.
@@ -646,12 +629,13 @@ class Financial
      *        COUPNUM(settlement,maturity,frequency[,basis])
      *
      * @category Financial Functions
-     * @param    mixed    settlement    The security's settlement date.
+     *
+     * @param mixed $settlement The security's settlement date.
      *                                The security settlement date is the date after the issue
      *                                date when the security is traded to the buyer.
-     * @param    mixed    maturity    The security's maturity date.
+     * @param mixed $maturity The security's maturity date.
      *                                The maturity date is the date when the security expires.
-     * @param    mixed    frequency    the number of coupon payments per year.
+     * @param mixed $frequency the number of coupon payments per year.
      *                                    Valid frequency values are:
      *                                        1    Annual
      *                                        2    Semi-Annual
@@ -660,20 +644,21 @@ class Financial
      *                                    also available
      *                                        6    Bimonthly
      *                                        12    Monthly
-     * @param    int        basis        The type of day count to use.
+     * @param int $basis The type of day count to use.
      *                                        0 or omitted    US (NASD) 30/360
      *                                        1                Actual/actual
      *                                        2                Actual/360
      *                                        3                Actual/365
      *                                        4                European 30/360
-     * @return    int
+     *
+     * @return int
      */
     public static function COUPNUM($settlement, $maturity, $frequency, $basis = 0)
     {
         $settlement = Functions::flattenSingleValue($settlement);
         $maturity = Functions::flattenSingleValue($maturity);
         $frequency = (int) Functions::flattenSingleValue($frequency);
-        $basis = (is_null($basis)) ? 0 : (int) Functions::flattenSingleValue($basis);
+        $basis = ($basis === null) ? 0 : (int) Functions::flattenSingleValue($basis);
 
         if (is_string($settlement = DateTime::getDateValue($settlement))) {
             return Functions::VALUE();
@@ -708,7 +693,7 @@ class Financial
     }
 
     /**
-     * COUPPCD
+     * COUPPCD.
      *
      * Returns the previous coupon date before the settlement date.
      *
@@ -716,12 +701,13 @@ class Financial
      *        COUPPCD(settlement,maturity,frequency[,basis])
      *
      * @category Financial Functions
-     * @param    mixed    settlement    The security's settlement date.
+     *
+     * @param mixed $settlement The security's settlement date.
      *                                The security settlement date is the date after the issue
      *                                date when the security is traded to the buyer.
-     * @param    mixed    maturity    The security's maturity date.
+     * @param mixed $maturity The security's maturity date.
      *                                The maturity date is the date when the security expires.
-     * @param    mixed    frequency    the number of coupon payments per year.
+     * @param mixed $frequency the number of coupon payments per year.
      *                                    Valid frequency values are:
      *                                        1    Annual
      *                                        2    Semi-Annual
@@ -730,13 +716,14 @@ class Financial
      *                                    also available
      *                                        6    Bimonthly
      *                                        12    Monthly
-     * @param    int        basis        The type of day count to use.
+     * @param int $basis The type of day count to use.
      *                                        0 or omitted    US (NASD) 30/360
      *                                        1                Actual/actual
      *                                        2                Actual/360
      *                                        3                Actual/365
      *                                        4                European 30/360
-     * @return    mixed    Excel date/time serial value, PHP date/time serial value or PHP date/time object,
+     *
+     * @return mixed Excel date/time serial value, PHP date/time serial value or PHP date/time object,
      *                        depending on the value of the ReturnDateType flag
      */
     public static function COUPPCD($settlement, $maturity, $frequency, $basis = 0)
@@ -744,7 +731,7 @@ class Financial
         $settlement = Functions::flattenSingleValue($settlement);
         $maturity = Functions::flattenSingleValue($maturity);
         $frequency = (int) Functions::flattenSingleValue($frequency);
-        $basis = (is_null($basis)) ? 0 : (int) Functions::flattenSingleValue($basis);
+        $basis = ($basis === null) ? 0 : (int) Functions::flattenSingleValue($basis);
 
         if (is_string($settlement = DateTime::getDateValue($settlement))) {
             return Functions::VALUE();
@@ -763,7 +750,7 @@ class Financial
     }
 
     /**
-     * CUMIPMT
+     * CUMIPMT.
      *
      * Returns the cumulative interest paid on a loan between the start and end periods.
      *
@@ -771,16 +758,18 @@ class Financial
      *        CUMIPMT(rate,nper,pv,start,end[,type])
      *
      * @category Financial Functions
-     * @param    float    $rate    The Interest rate
-     * @param    int    $nper    The total number of payment periods
-     * @param    float    $pv        Present Value
-     * @param    int    $start    The first period in the calculation.
+     *
+     * @param float $rate The Interest rate
+     * @param int $nper The total number of payment periods
+     * @param float $pv Present Value
+     * @param int $start The first period in the calculation.
      *                            Payment periods are numbered beginning with 1.
-     * @param    int    $end    The last period in the calculation.
-     * @param    int    $type    A number 0 or 1 and indicates when payments are due:
+     * @param int $end the last period in the calculation
+     * @param int $type A number 0 or 1 and indicates when payments are due:
      *                                0 or omitted    At the end of the period.
      *                                1                At the beginning of the period.
-     * @return    float
+     *
+     * @return float
      */
     public static function CUMIPMT($rate, $nper, $pv, $start, $end, $type = 0)
     {
@@ -809,7 +798,7 @@ class Financial
     }
 
     /**
-     * CUMPRINC
+     * CUMPRINC.
      *
      * Returns the cumulative principal paid on a loan between the start and end periods.
      *
@@ -817,16 +806,18 @@ class Financial
      *        CUMPRINC(rate,nper,pv,start,end[,type])
      *
      * @category Financial Functions
-     * @param    float    $rate    The Interest rate
-     * @param    int    $nper    The total number of payment periods
-     * @param    float    $pv        Present Value
-     * @param    int    $start    The first period in the calculation.
+     *
+     * @param float $rate The Interest rate
+     * @param int $nper The total number of payment periods
+     * @param float $pv Present Value
+     * @param int $start The first period in the calculation.
      *                            Payment periods are numbered beginning with 1.
-     * @param    int    $end    The last period in the calculation.
-     * @param    int    $type    A number 0 or 1 and indicates when payments are due:
+     * @param int $end the last period in the calculation
+     * @param int $type A number 0 or 1 and indicates when payments are due:
      *                                0 or omitted    At the end of the period.
      *                                1                At the beginning of the period.
-     * @return    float
+     *
+     * @return float
      */
     public static function CUMPRINC($rate, $nper, $pv, $start, $end, $type = 0)
     {
@@ -855,7 +846,7 @@ class Financial
     }
 
     /**
-     * DB
+     * DB.
      *
      * Returns the depreciation of an asset for a specified period using the
      * fixed-declining balance method.
@@ -868,16 +859,18 @@ class Financial
      *        DB(cost,salvage,life,period[,month])
      *
      * @category Financial Functions
-     * @param    float    cost        Initial cost of the asset.
-     * @param    float    salvage        Value at the end of the depreciation.
+     *
+     * @param float $cost Initial cost of the asset
+     * @param float $salvage Value at the end of the depreciation.
      *                                (Sometimes called the salvage value of the asset)
-     * @param    int    life        Number of periods over which the asset is depreciated.
+     * @param int $life Number of periods over which the asset is depreciated.
      *                                (Sometimes called the useful life of the asset)
-     * @param    int    period        The period for which you want to calculate the
+     * @param int $period The period for which you want to calculate the
      *                                depreciation. Period must use the same units as life.
-     * @param    int    month        Number of months in the first year. If month is omitted,
+     * @param int $month Number of months in the first year. If month is omitted,
      *                                it defaults to 12.
-     * @return    float
+     *
+     * @return float
      */
     public static function DB($cost, $salvage, $life, $period, $month = 12)
     {
@@ -926,7 +919,7 @@ class Financial
     }
 
     /**
-     * DDB
+     * DDB.
      *
      * Returns the depreciation of an asset for a specified period using the
      * double-declining balance method or some other method you specify.
@@ -935,17 +928,19 @@ class Financial
      *        DDB(cost,salvage,life,period[,factor])
      *
      * @category Financial Functions
-     * @param    float    cost        Initial cost of the asset.
-     * @param    float    salvage        Value at the end of the depreciation.
+     *
+     * @param float $cost Initial cost of the asset
+     * @param float $salvage Value at the end of the depreciation.
      *                                (Sometimes called the salvage value of the asset)
-     * @param    int    life        Number of periods over which the asset is depreciated.
+     * @param int $life Number of periods over which the asset is depreciated.
      *                                (Sometimes called the useful life of the asset)
-     * @param    int    period        The period for which you want to calculate the
+     * @param int $period The period for which you want to calculate the
      *                                depreciation. Period must use the same units as life.
-     * @param    float    factor        The rate at which the balance declines.
+     * @param float $factor The rate at which the balance declines.
      *                                If factor is omitted, it is assumed to be 2 (the
      *                                double-declining balance method).
-     * @return    float
+     *
+     * @return float
      */
     public static function DDB($cost, $salvage, $life, $period, $factor = 2.0)
     {
@@ -986,7 +981,7 @@ class Financial
     }
 
     /**
-     * DISC
+     * DISC.
      *
      * Returns the discount rate for a security.
      *
@@ -994,20 +989,22 @@ class Financial
      *        DISC(settlement,maturity,price,redemption[,basis])
      *
      * @category Financial Functions
-     * @param    mixed    settlement    The security's settlement date.
+     *
+     * @param mixed $settlement The security's settlement date.
      *                                The security settlement date is the date after the issue
      *                                date when the security is traded to the buyer.
-     * @param    mixed    maturity    The security's maturity date.
+     * @param mixed $maturity The security's maturity date.
      *                                The maturity date is the date when the security expires.
-     * @param    int    price        The security's price per $100 face value.
-     * @param    int    redemption    The security's redemption value per $100 face value.
-     * @param    int    basis        The type of day count to use.
+     * @param int $price The security's price per $100 face value
+     * @param int $redemption The security's redemption value per $100 face value
+     * @param int $basis The type of day count to use.
      *                                        0 or omitted    US (NASD) 30/360
      *                                        1                Actual/actual
      *                                        2                Actual/360
      *                                        3                Actual/365
      *                                        4                European 30/360
-     * @return    float
+     *
+     * @return float
      */
     public static function DISC($settlement, $maturity, $price, $redemption, $basis = 0)
     {
@@ -1038,7 +1035,7 @@ class Financial
     }
 
     /**
-     * DOLLARDE
+     * DOLLARDE.
      *
      * Converts a dollar price expressed as an integer part and a fraction
      *        part into a dollar price expressed as a decimal number.
@@ -1048,9 +1045,11 @@ class Financial
      *        DOLLARDE(fractional_dollar,fraction)
      *
      * @category Financial Functions
-     * @param    float    $fractional_dollar    Fractional Dollar
-     * @param    int    $fraction            Fraction
-     * @return    float
+     *
+     * @param float $fractional_dollar Fractional Dollar
+     * @param int $fraction Fraction
+     *
+     * @return float
      */
     public static function DOLLARDE($fractional_dollar = null, $fraction = 0)
     {
@@ -1058,7 +1057,7 @@ class Financial
         $fraction = (int) Functions::flattenSingleValue($fraction);
 
         // Validate parameters
-        if (is_null($fractional_dollar) || $fraction < 0) {
+        if ($fractional_dollar === null || $fraction < 0) {
             return Functions::NAN();
         }
         if ($fraction == 0) {
@@ -1074,7 +1073,7 @@ class Financial
     }
 
     /**
-     * DOLLARFR
+     * DOLLARFR.
      *
      * Converts a dollar price expressed as a decimal number into a dollar price
      *        expressed as a fraction.
@@ -1084,9 +1083,11 @@ class Financial
      *        DOLLARFR(decimal_dollar,fraction)
      *
      * @category Financial Functions
-     * @param    float    $decimal_dollar        Decimal Dollar
-     * @param    int    $fraction            Fraction
-     * @return    float
+     *
+     * @param float $decimal_dollar Decimal Dollar
+     * @param int $fraction Fraction
+     *
+     * @return float
      */
     public static function DOLLARFR($decimal_dollar = null, $fraction = 0)
     {
@@ -1094,7 +1095,7 @@ class Financial
         $fraction = (int) Functions::flattenSingleValue($fraction);
 
         // Validate parameters
-        if (is_null($decimal_dollar) || $fraction < 0) {
+        if ($decimal_dollar === null || $fraction < 0) {
             return Functions::NAN();
         }
         if ($fraction == 0) {
@@ -1110,7 +1111,7 @@ class Financial
     }
 
     /**
-     * EFFECT
+     * EFFECT.
      *
      * Returns the effective interest rate given the nominal rate and the number of
      *        compounding payments per year.
@@ -1119,9 +1120,11 @@ class Financial
      *        EFFECT(nominal_rate,npery)
      *
      * @category Financial Functions
-     * @param    float    $nominal_rate        Nominal interest rate
-     * @param    int    $npery                Number of compounding payments per year
-     * @return    float
+     *
+     * @param float $nominal_rate Nominal interest rate
+     * @param int $npery Number of compounding payments per year
+     *
+     * @return float
      */
     public static function EFFECT($nominal_rate = 0, $npery = 0)
     {
@@ -1137,7 +1140,7 @@ class Financial
     }
 
     /**
-     * FV
+     * FV.
      *
      * Returns the Future Value of a cash flow with constant payments and interest rate (annuities).
      *
@@ -1145,17 +1148,19 @@ class Financial
      *        FV(rate,nper,pmt[,pv[,type]])
      *
      * @category Financial Functions
-     * @param    float    $rate    The interest rate per period
-     * @param    int        $nper    Total number of payment periods in an annuity
-     * @param    float    $pmt    The payment made each period: it cannot change over the
+     *
+     * @param float $rate The interest rate per period
+     * @param int $nper Total number of payment periods in an annuity
+     * @param float $pmt The payment made each period: it cannot change over the
      *                            life of the annuity. Typically, pmt contains principal
      *                            and interest but no other fees or taxes.
-     * @param    float    $pv        Present Value, or the lump-sum amount that a series of
-     *                            future payments is worth right now.
-     * @param    int    $type    A number 0 or 1 and indicates when payments are due:
+     * @param float $pv present Value, or the lump-sum amount that a series of
+     *                            future payments is worth right now
+     * @param int $type A number 0 or 1 and indicates when payments are due:
      *                                0 or omitted    At the end of the period.
      *                                1                At the beginning of the period.
-     * @return    float
+     *
+     * @return float
      */
     public static function FV($rate = 0, $nper = 0, $pmt = 0, $pv = 0, $type = 0)
     {
@@ -1171,7 +1176,7 @@ class Financial
         }
 
         // Calculate
-        if (!is_null($rate) && $rate != 0) {
+        if ($rate !== null && $rate != 0) {
             return -$pv * pow(1 + $rate, $nper) - $pmt * (1 + $rate * $type) * (pow(1 + $rate, $nper) - 1) / $rate;
         }
 
@@ -1179,7 +1184,7 @@ class Financial
     }
 
     /**
-     * FVSCHEDULE
+     * FVSCHEDULE.
      *
      * Returns the future value of an initial principal after applying a series of compound interest rates.
      * Use FVSCHEDULE to calculate the future value of an investment with a variable or adjustable rate.
@@ -1187,9 +1192,10 @@ class Financial
      * Excel Function:
      *        FVSCHEDULE(principal,schedule)
      *
-     * @param    float    $principal    The present value.
-     * @param    float[]    $schedule    An array of interest rates to apply.
-     * @return    float
+     * @param float $principal the present value
+     * @param float[] $schedule an array of interest rates to apply
+     *
+     * @return float
      */
     public static function FVSCHEDULE($principal, $schedule)
     {
@@ -1204,26 +1210,27 @@ class Financial
     }
 
     /**
-     * INTRATE
+     * INTRATE.
      *
      * Returns the interest rate for a fully invested security.
      *
      * Excel Function:
      *        INTRATE(settlement,maturity,investment,redemption[,basis])
      *
-     * @param    mixed    $settlement    The security's settlement date.
+     * @param mixed $settlement The security's settlement date.
      *                                The security settlement date is the date after the issue date when the security is traded to the buyer.
-     * @param    mixed    $maturity    The security's maturity date.
+     * @param mixed $maturity The security's maturity date.
      *                                The maturity date is the date when the security expires.
-     * @param    int    $investment    The amount invested in the security.
-     * @param    int    $redemption    The amount to be received at maturity.
-     * @param    int    $basis        The type of day count to use.
+     * @param int $investment the amount invested in the security
+     * @param int $redemption the amount to be received at maturity
+     * @param int $basis The type of day count to use.
      *                                        0 or omitted    US (NASD) 30/360
      *                                        1                Actual/actual
      *                                        2                Actual/360
      *                                        3                Actual/365
      *                                        4                European 30/360
-     * @return    float
+     *
+     * @return float
      */
     public static function INTRATE($settlement, $maturity, $investment, $redemption, $basis = 0)
     {
@@ -1254,20 +1261,21 @@ class Financial
     }
 
     /**
-     * IPMT
+     * IPMT.
      *
      * Returns the interest payment for a given period for an investment based on periodic, constant payments and a constant interest rate.
      *
      * Excel Function:
      *        IPMT(rate,per,nper,pv[,fv][,type])
      *
-     * @param    float    $rate    Interest rate per period
-     * @param    int        $per    Period for which we want to find the interest
-     * @param    int        $nper    Number of periods
-     * @param    float    $pv        Present Value
-     * @param    float    $fv        Future Value
-     * @param    int        $type    Payment type: 0 = at the end of each period, 1 = at the beginning of each period
-     * @return    float
+     * @param float $rate Interest rate per period
+     * @param int $per Period for which we want to find the interest
+     * @param int $nper Number of periods
+     * @param float $pv Present Value
+     * @param float $fv Future Value
+     * @param int $type Payment type: 0 = at the end of each period, 1 = at the beginning of each period
+     *
+     * @return float
      */
     public static function IPMT($rate, $per, $nper, $pv, $fv = 0, $type = 0)
     {
@@ -1293,7 +1301,7 @@ class Financial
     }
 
     /**
-     * IRR
+     * IRR.
      *
      * Returns the internal rate of return for a series of cash flows represented by the numbers in values.
      * These cash flows do not have to be even, as they would be for an annuity. However, the cash flows must occur
@@ -1304,12 +1312,13 @@ class Financial
      * Excel Function:
      *        IRR(values[,guess])
      *
-     * @param    float[]    $values        An array or a reference to cells that contain numbers for which you want
+     * @param float[] $values An array or a reference to cells that contain numbers for which you want
      *                                    to calculate the internal rate of return.
      *                                Values must contain at least one positive value and one negative value to
      *                                    calculate the internal rate of return.
-     * @param    float    $guess        A number that you guess is close to the result of IRR
-     * @return    float
+     * @param float $guess A number that you guess is close to the result of IRR
+     *
+     * @return float
      */
     public static function IRR($values, $guess = 0.1)
     {
@@ -1324,7 +1333,7 @@ class Financial
         $x2 = $guess;
         $f1 = self::NPV($x1, $values);
         $f2 = self::NPV($x2, $values);
-        for ($i = 0; $i < FINANCIAL_MAX_ITERATIONS; ++$i) {
+        for ($i = 0; $i < self::FINANCIAL_MAX_ITERATIONS; ++$i) {
             if (($f1 * $f2) < 0.0) {
                 break;
             }
@@ -1347,14 +1356,14 @@ class Financial
             $dx = $x1 - $x2;
         }
 
-        for ($i = 0; $i < FINANCIAL_MAX_ITERATIONS; ++$i) {
+        for ($i = 0; $i < self::FINANCIAL_MAX_ITERATIONS; ++$i) {
             $dx *= 0.5;
             $x_mid = $rtb + $dx;
             $f_mid = self::NPV($x_mid, $values);
             if ($f_mid <= 0.0) {
                 $rtb = $x_mid;
             }
-            if ((abs($f_mid) < FINANCIAL_PRECISION) || (abs($dx) < FINANCIAL_PRECISION)) {
+            if ((abs($f_mid) < self::FINANCIAL_PRECISION) || (abs($dx) < self::FINANCIAL_PRECISION)) {
                 return $x_mid;
             }
         }
@@ -1363,7 +1372,7 @@ class Financial
     }
 
     /**
-     * ISPMT
+     * ISPMT.
      *
      * Returns the interest payment for an investment based on an interest rate and a constant payment schedule.
      *
@@ -1378,13 +1387,13 @@ class Financial
      *
      * PV is the loan amount or present value of the payments
      */
-    public static function ISPMT()
+    public static function ISPMT(...$args)
     {
         // Return value
         $returnValue = 0;
 
         // Get the parameters
-        $aArgs = Functions::flattenArray(func_get_args());
+        $aArgs = Functions::flattenArray($args);
         $interestRate = array_shift($aArgs);
         $period = array_shift($aArgs);
         $numberPeriods = array_shift($aArgs);
@@ -1405,7 +1414,7 @@ class Financial
     }
 
     /**
-     * MIRR
+     * MIRR.
      *
      * Returns the modified internal rate of return for a series of periodic cash flows. MIRR considers both
      *        the cost of the investment and the interest received on reinvestment of cash.
@@ -1413,12 +1422,13 @@ class Financial
      * Excel Function:
      *        MIRR(values,finance_rate, reinvestment_rate)
      *
-     * @param    float[]    $values                An array or a reference to cells that contain a series of payments and
+     * @param float[] $values An array or a reference to cells that contain a series of payments and
      *                                            income occurring at regular intervals.
      *                                        Payments are negative value, income is positive values.
-     * @param    float    $finance_rate        The interest rate you pay on the money used in the cash flows
-     * @param    float    $reinvestment_rate    The interest rate you receive on the cash flows as you reinvest them
-     * @return    float
+     * @param float $finance_rate The interest rate you pay on the money used in the cash flows
+     * @param float $reinvestment_rate The interest rate you receive on the cash flows as you reinvest them
+     *
+     * @return float
      */
     public static function MIRR($values, $finance_rate, $reinvestment_rate)
     {
@@ -1453,13 +1463,14 @@ class Financial
     }
 
     /**
-     * NOMINAL
+     * NOMINAL.
      *
      * Returns the nominal interest rate given the effective rate and the number of compounding payments per year.
      *
-     * @param    float    $effect_rate    Effective interest rate
-     * @param    int        $npery            Number of compounding payments per year
-     * @return    float
+     * @param float $effect_rate Effective interest rate
+     * @param int $npery Number of compounding payments per year
+     *
+     * @return float
      */
     public static function NOMINAL($effect_rate = 0, $npery = 0)
     {
@@ -1476,16 +1487,17 @@ class Financial
     }
 
     /**
-     * NPER
+     * NPER.
      *
      * Returns the number of periods for a cash flow with constant periodic payments (annuities), and interest rate.
      *
-     * @param    float    $rate    Interest rate per period
-     * @param    int        $pmt    Periodic payment (annuity)
-     * @param    float    $pv        Present Value
-     * @param    float    $fv        Future Value
-     * @param    int        $type    Payment type: 0 = at the end of each period, 1 = at the beginning of each period
-     * @return    float
+     * @param float $rate Interest rate per period
+     * @param int $pmt Periodic payment (annuity)
+     * @param float $pv Present Value
+     * @param float $fv Future Value
+     * @param int $type Payment type: 0 = at the end of each period, 1 = at the beginning of each period
+     *
+     * @return float
      */
     public static function NPER($rate = 0, $pmt = 0, $pv = 0, $fv = 0, $type = 0)
     {
@@ -1501,7 +1513,7 @@ class Financial
         }
 
         // Calculate
-        if (!is_null($rate) && $rate != 0) {
+        if ($rate !== null && $rate != 0) {
             if ($pmt == 0 && $pv == 0) {
                 return Functions::NAN();
             }
@@ -1516,23 +1528,24 @@ class Financial
     }
 
     /**
-     * NPV
+     * NPV.
      *
      * Returns the Net Present Value of a cash flow series given a discount rate.
      *
-     * @return    float
+     * @return float
      */
-    public static function NPV()
+    public static function NPV(...$args)
     {
         // Return value
         $returnValue = 0;
 
         // Loop through arguments
-        $aArgs = Functions::flattenArray(func_get_args());
+        $aArgs = Functions::flattenArray($args);
 
         // Calculate
         $rate = array_shift($aArgs);
-        for ($i = 1; $i <= count($aArgs); ++$i) {
+        $countArgs = count($aArgs);
+        for ($i = 1; $i <= $countArgs; ++$i) {
             // Is it a numeric value?
             if (is_numeric($aArgs[$i - 1])) {
                 $returnValue += $aArgs[$i - 1] / pow(1 + $rate, $i);
@@ -1544,16 +1557,17 @@ class Financial
     }
 
     /**
-     * PMT
+     * PMT.
      *
      * Returns the constant payment (annuity) for a cash flow with a constant interest rate.
      *
-     * @param    float    $rate    Interest rate per period
-     * @param    int        $nper    Number of periods
-     * @param    float    $pv        Present Value
-     * @param    float    $fv        Future Value
-     * @param    int        $type    Payment type: 0 = at the end of each period, 1 = at the beginning of each period
-     * @return    float
+     * @param float $rate Interest rate per period
+     * @param int $nper Number of periods
+     * @param float $pv Present Value
+     * @param float $fv Future Value
+     * @param int $type Payment type: 0 = at the end of each period, 1 = at the beginning of each period
+     *
+     * @return float
      */
     public static function PMT($rate = 0, $nper = 0, $pv = 0, $fv = 0, $type = 0)
     {
@@ -1569,7 +1583,7 @@ class Financial
         }
 
         // Calculate
-        if (!is_null($rate) && $rate != 0) {
+        if ($rate !== null && $rate != 0) {
             return (-$fv - $pv * pow(1 + $rate, $nper)) / (1 + $rate * $type) / ((pow(1 + $rate, $nper) - 1) / $rate);
         }
 
@@ -1577,17 +1591,18 @@ class Financial
     }
 
     /**
-     * PPMT
+     * PPMT.
      *
      * Returns the interest payment for a given period for an investment based on periodic, constant payments and a constant interest rate.
      *
-     * @param    float    $rate    Interest rate per period
-     * @param    int        $per    Period for which we want to find the interest
-     * @param    int        $nper    Number of periods
-     * @param    float    $pv        Present Value
-     * @param    float    $fv        Future Value
-     * @param    int        $type    Payment type: 0 = at the end of each period, 1 = at the beginning of each period
-     * @return    float
+     * @param float $rate Interest rate per period
+     * @param int $per Period for which we want to find the interest
+     * @param int $nper Number of periods
+     * @param float $pv Present Value
+     * @param float $fv Future Value
+     * @param int $type Payment type: 0 = at the end of each period, 1 = at the beginning of each period
+     *
+     * @return float
      */
     public static function PPMT($rate, $per, $nper, $pv, $fv = 0, $type = 0)
     {
@@ -1620,7 +1635,7 @@ class Financial
         $yield = (float) Functions::flattenSingleValue($yield);
         $redemption = (float) Functions::flattenSingleValue($redemption);
         $frequency = (int) Functions::flattenSingleValue($frequency);
-        $basis = (is_null($basis)) ? 0 : (int) Functions::flattenSingleValue($basis);
+        $basis = ($basis === null) ? 0 : (int) Functions::flattenSingleValue($basis);
 
         if (is_string($settlement = DateTime::getDateValue($settlement))) {
             return Functions::VALUE();
@@ -1654,23 +1669,24 @@ class Financial
     }
 
     /**
-     * PRICEDISC
+     * PRICEDISC.
      *
      * Returns the price per $100 face value of a discounted security.
      *
-     * @param    mixed    settlement    The security's settlement date.
+     * @param mixed $settlement The security's settlement date.
      *                                The security settlement date is the date after the issue date when the security is traded to the buyer.
-     * @param    mixed    maturity    The security's maturity date.
+     * @param mixed $maturity The security's maturity date.
      *                                The maturity date is the date when the security expires.
-     * @param    int        discount    The security's discount rate.
-     * @param    int        redemption    The security's redemption value per $100 face value.
-     * @param    int        basis        The type of day count to use.
+     * @param int $discount The security's discount rate
+     * @param int $redemption The security's redemption value per $100 face value
+     * @param int $basis The type of day count to use.
      *                                        0 or omitted    US (NASD) 30/360
      *                                        1                Actual/actual
      *                                        2                Actual/360
      *                                        3                Actual/365
      *                                        4                European 30/360
-     * @return    float
+     *
+     * @return float
      */
     public static function PRICEDISC($settlement, $maturity, $discount, $redemption, $basis = 0)
     {
@@ -1698,24 +1714,25 @@ class Financial
     }
 
     /**
-     * PRICEMAT
+     * PRICEMAT.
      *
      * Returns the price per $100 face value of a security that pays interest at maturity.
      *
-     * @param    mixed    settlement    The security's settlement date.
+     * @param mixed $settlement The security's settlement date.
      *                                The security's settlement date is the date after the issue date when the security is traded to the buyer.
-     * @param    mixed    maturity    The security's maturity date.
+     * @param mixed $maturity The security's maturity date.
      *                                The maturity date is the date when the security expires.
-     * @param    mixed    issue        The security's issue date.
-     * @param    int        rate        The security's interest rate at date of issue.
-     * @param    int        yield        The security's annual yield.
-     * @param    int        basis        The type of day count to use.
+     * @param mixed $issue The security's issue date
+     * @param int $rate The security's interest rate at date of issue
+     * @param int $yield The security's annual yield
+     * @param int $basis The type of day count to use.
      *                                        0 or omitted    US (NASD) 30/360
      *                                        1                Actual/actual
      *                                        2                Actual/360
      *                                        3                Actual/365
      *                                        4                European 30/360
-     * @return    float
+     *
+     * @return float
      */
     public static function PRICEMAT($settlement, $maturity, $issue, $rate, $yield, $basis = 0)
     {
@@ -1763,16 +1780,17 @@ class Financial
     }
 
     /**
-     * PV
+     * PV.
      *
      * Returns the Present Value of a cash flow with constant payments and interest rate (annuities).
      *
-     * @param    float    $rate    Interest rate per period
-     * @param    int        $nper    Number of periods
-     * @param    float    $pmt    Periodic payment (annuity)
-     * @param    float    $fv        Future Value
-     * @param    int        $type    Payment type: 0 = at the end of each period, 1 = at the beginning of each period
-     * @return    float
+     * @param float $rate Interest rate per period
+     * @param int $nper Number of periods
+     * @param float $pmt Periodic payment (annuity)
+     * @param float $fv Future Value
+     * @param int $type Payment type: 0 = at the end of each period, 1 = at the beginning of each period
+     *
+     * @return float
      */
     public static function PV($rate = 0, $nper = 0, $pmt = 0, $fv = 0, $type = 0)
     {
@@ -1788,7 +1806,7 @@ class Financial
         }
 
         // Calculate
-        if (!is_null($rate) && $rate != 0) {
+        if ($rate !== null && $rate != 0) {
             return (-$pmt * (1 + $rate * $type) * ((pow(1 + $rate, $nper) - 1) / $rate) - $fv) / pow(1 + $rate, $nper);
         }
 
@@ -1796,7 +1814,7 @@ class Financial
     }
 
     /**
-     * RATE
+     * RATE.
      *
      * Returns the interest rate per period of an annuity.
      * RATE is calculated by iteration and can have zero or more solutions.
@@ -1807,34 +1825,36 @@ class Financial
      *        RATE(nper,pmt,pv[,fv[,type[,guess]]])
      *
      * @category Financial Functions
-     * @param    float    nper        The total number of payment periods in an annuity.
-     * @param    float    pmt            The payment made each period and cannot change over the life
+     *
+     * @param float $nper The total number of payment periods in an annuity
+     * @param float $pmt The payment made each period and cannot change over the life
      *                                    of the annuity.
      *                                Typically, pmt includes principal and interest but no other
      *                                    fees or taxes.
-     * @param    float    pv            The present value - the total amount that a series of future
-     *                                    payments is worth now.
-     * @param    float    fv            The future value, or a cash balance you want to attain after
+     * @param float $pv The present value - the total amount that a series of future
+     *                                    payments is worth now
+     * @param float $fv The future value, or a cash balance you want to attain after
      *                                    the last payment is made. If fv is omitted, it is assumed
      *                                    to be 0 (the future value of a loan, for example, is 0).
-     * @param    int    type        A number 0 or 1 and indicates when payments are due:
+     * @param int $type A number 0 or 1 and indicates when payments are due:
      *                                        0 or omitted    At the end of the period.
      *                                        1                At the beginning of the period.
-     * @param    float    guess        Your guess for what the rate will be.
+     * @param float $guess Your guess for what the rate will be.
      *                                    If you omit guess, it is assumed to be 10 percent.
-     * @return    float
-     **/
+     *
+     * @return float
+     */
     public static function RATE($nper, $pmt, $pv, $fv = 0.0, $type = 0, $guess = 0.1)
     {
         $nper = (int) Functions::flattenSingleValue($nper);
         $pmt = Functions::flattenSingleValue($pmt);
         $pv = Functions::flattenSingleValue($pv);
-        $fv = (is_null($fv)) ? 0.0 : Functions::flattenSingleValue($fv);
-        $type = (is_null($type)) ? 0 : (int) Functions::flattenSingleValue($type);
-        $guess = (is_null($guess)) ? 0.1 : Functions::flattenSingleValue($guess);
+        $fv = ($fv === null) ? 0.0 : Functions::flattenSingleValue($fv);
+        $type = ($type === null) ? 0 : (int) Functions::flattenSingleValue($type);
+        $guess = ($guess === null) ? 0.1 : Functions::flattenSingleValue($guess);
 
         $rate = $guess;
-        if (abs($rate) < FINANCIAL_PRECISION) {
+        if (abs($rate) < self::FINANCIAL_PRECISION) {
             $y = $pv * (1 + $nper * $rate) + $pmt * (1 + $rate * $type) * $nper + $fv;
         } else {
             $f = exp($nper * log(1 + $rate));
@@ -1846,14 +1866,14 @@ class Financial
         // find root by secant method
         $i = $x0 = 0.0;
         $x1 = $rate;
-        while ((abs($y0 - $y1) > FINANCIAL_PRECISION) && ($i < FINANCIAL_MAX_ITERATIONS)) {
+        while ((abs($y0 - $y1) > self::FINANCIAL_PRECISION) && ($i < self::FINANCIAL_MAX_ITERATIONS)) {
             $rate = ($y1 * $x0 - $y0 * $x1) / ($y1 - $y0);
             $x0 = $x1;
             $x1 = $rate;
             if (($nper * abs($pmt)) > ($pv - $fv)) {
                 $x1 = abs($x1);
             }
-            if (abs($rate) < FINANCIAL_PRECISION) {
+            if (abs($rate) < self::FINANCIAL_PRECISION) {
                 $y = $pv * (1 + $nper * $rate) + $pmt * (1 + $rate * $type) * $nper + $fv;
             } else {
                 $f = exp($nper * log(1 + $rate));
@@ -1869,23 +1889,24 @@ class Financial
     }
 
     /**
-     * RECEIVED
+     * RECEIVED.
      *
      * Returns the price per $100 face value of a discounted security.
      *
-     * @param    mixed    settlement    The security's settlement date.
+     * @param mixed $settlement The security's settlement date.
      *                                The security settlement date is the date after the issue date when the security is traded to the buyer.
-     * @param    mixed    maturity    The security's maturity date.
+     * @param mixed $maturity The security's maturity date.
      *                                The maturity date is the date when the security expires.
-     * @param    int        investment    The amount invested in the security.
-     * @param    int        discount    The security's discount rate.
-     * @param    int        basis        The type of day count to use.
+     * @param int $investment The amount invested in the security
+     * @param int $discount The security's discount rate
+     * @param int $basis The type of day count to use.
      *                                        0 or omitted    US (NASD) 30/360
      *                                        1                Actual/actual
      *                                        2                Actual/360
      *                                        3                Actual/365
      *                                        4                European 30/360
-     * @return    float
+     *
+     * @return float
      */
     public static function RECEIVED($settlement, $maturity, $investment, $discount, $basis = 0)
     {
@@ -1913,14 +1934,15 @@ class Financial
     }
 
     /**
-     * SLN
+     * SLN.
      *
      * Returns the straight-line depreciation of an asset for one period
      *
-     * @param    cost        Initial cost of the asset
-     * @param    salvage        Value at the end of the depreciation
-     * @param    life        Number of periods over which the asset is depreciated
-     * @return    float
+     * @param mixed $cost Initial cost of the asset
+     * @param mixed $salvage Value at the end of the depreciation
+     * @param mixed $life Number of periods over which the asset is depreciated
+     *
+     * @return float
      */
     public static function SLN($cost, $salvage, $life)
     {
@@ -1941,15 +1963,16 @@ class Financial
     }
 
     /**
-     * SYD
+     * SYD.
      *
      * Returns the sum-of-years' digits depreciation of an asset for a specified period.
      *
-     * @param    cost        Initial cost of the asset
-     * @param    salvage        Value at the end of the depreciation
-     * @param    life        Number of periods over which the asset is depreciated
-     * @param    period        Period
-     * @return    float
+     * @param mixed $cost Initial cost of the asset
+     * @param mixed $salvage Value at the end of the depreciation
+     * @param mixed $life Number of periods over which the asset is depreciated
+     * @param mixed $period Period
+     *
+     * @return float
      */
     public static function SYD($cost, $salvage, $life, $period)
     {
@@ -1971,16 +1994,17 @@ class Financial
     }
 
     /**
-     * TBILLEQ
+     * TBILLEQ.
      *
      * Returns the bond-equivalent yield for a Treasury bill.
      *
-     * @param    mixed    settlement    The Treasury bill's settlement date.
+     * @param mixed $settlement The Treasury bill's settlement date.
      *                                The Treasury bill's settlement date is the date after the issue date when the Treasury bill is traded to the buyer.
-     * @param    mixed    maturity    The Treasury bill's maturity date.
+     * @param mixed $maturity The Treasury bill's maturity date.
      *                                The maturity date is the date when the Treasury bill expires.
-     * @param    int        discount    The Treasury bill's discount rate.
-     * @return    float
+     * @param int $discount The Treasury bill's discount rate
+     *
+     * @return float
      */
     public static function TBILLEQ($settlement, $maturity, $discount)
     {
@@ -2009,16 +2033,17 @@ class Financial
     }
 
     /**
-     * TBILLPRICE
+     * TBILLPRICE.
      *
      * Returns the yield for a Treasury bill.
      *
-     * @param    mixed    settlement    The Treasury bill's settlement date.
+     * @param mixed $settlement The Treasury bill's settlement date.
      *                                The Treasury bill's settlement date is the date after the issue date when the Treasury bill is traded to the buyer.
-     * @param    mixed    maturity    The Treasury bill's maturity date.
+     * @param mixed $maturity The Treasury bill's maturity date.
      *                                The maturity date is the date when the Treasury bill expires.
-     * @param    int        discount    The Treasury bill's discount rate.
-     * @return    float
+     * @param int $discount The Treasury bill's discount rate
+     *
+     * @return float
      */
     public static function TBILLPRICE($settlement, $maturity, $discount)
     {
@@ -2063,16 +2088,17 @@ class Financial
     }
 
     /**
-     * TBILLYIELD
+     * TBILLYIELD.
      *
      * Returns the yield for a Treasury bill.
      *
-     * @param    mixed    settlement    The Treasury bill's settlement date.
+     * @param mixed $settlement The Treasury bill's settlement date.
      *                                The Treasury bill's settlement date is the date after the issue date when the Treasury bill is traded to the buyer.
-     * @param    mixed    maturity    The Treasury bill's maturity date.
+     * @param mixed $maturity The Treasury bill's maturity date.
      *                                The maturity date is the date when the Treasury bill expires.
-     * @param    int        price        The Treasury bill's price per $100 face value.
-     * @return    float
+     * @param int $price The Treasury bill's price per $100 face value
+     *
+     * @return float
      */
     public static function TBILLYIELD($settlement, $maturity, $price)
     {
@@ -2124,7 +2150,7 @@ class Financial
         $x2 = $guess;
         $f1 = self::XNPV($x1, $values, $dates);
         $f2 = self::XNPV($x2, $values, $dates);
-        for ($i = 0; $i < FINANCIAL_MAX_ITERATIONS; ++$i) {
+        for ($i = 0; $i < self::FINANCIAL_MAX_ITERATIONS; ++$i) {
             if (($f1 * $f2) < 0.0) {
                 break;
             } elseif (abs($f1) < abs($f2)) {
@@ -2146,14 +2172,14 @@ class Financial
             $dx = $x1 - $x2;
         }
 
-        for ($i = 0; $i < FINANCIAL_MAX_ITERATIONS; ++$i) {
+        for ($i = 0; $i < self::FINANCIAL_MAX_ITERATIONS; ++$i) {
             $dx *= 0.5;
             $x_mid = $rtb + $dx;
             $f_mid = self::XNPV($x_mid, $values, $dates);
             if ($f_mid <= 0.0) {
                 $rtb = $x_mid;
             }
-            if ((abs($f_mid) < FINANCIAL_PRECISION) || (abs($dx) < FINANCIAL_PRECISION)) {
+            if ((abs($f_mid) < self::FINANCIAL_PRECISION) || (abs($dx) < self::FINANCIAL_PRECISION)) {
                 return $x_mid;
             }
         }
@@ -2162,7 +2188,7 @@ class Financial
     }
 
     /**
-     * XNPV
+     * XNPV.
      *
      * Returns the net present value for a schedule of cash flows that is not necessarily periodic.
      * To calculate the net present value for a series of cash flows that is periodic, use the NPV function.
@@ -2170,15 +2196,16 @@ class Financial
      * Excel Function:
      *        =XNPV(rate,values,dates)
      *
-     * @param    float            $rate        The discount rate to apply to the cash flows.
-     * @param    array of float    $values     A series of cash flows that corresponds to a schedule of payments in dates.
+     * @param float $rate the discount rate to apply to the cash flows
+     * @param array of float    $values     A series of cash flows that corresponds to a schedule of payments in dates.
      *                                         The first payment is optional and corresponds to a cost or payment that occurs at the beginning of the investment.
      *                                         If the first value is a cost or payment, it must be a negative value. All succeeding payments are discounted based on a 365-day year.
      *                                         The series of values must contain at least one positive value and one negative value.
-     * @param    array of mixed    $dates      A schedule of payment dates that corresponds to the cash flow payments.
+     * @param array of mixed    $dates      A schedule of payment dates that corresponds to the cash flow payments.
      *                                         The first payment date indicates the beginning of the schedule of payments.
      *                                         All other dates must be later than this date, but they may occur in any order.
-     * @return    float
+     *
+     * @return float
      */
     public static function XNPV($rate, $values, $dates)
     {
@@ -2211,23 +2238,24 @@ class Financial
     }
 
     /**
-     * YIELDDISC
+     * YIELDDISC.
      *
      * Returns the annual yield of a security that pays interest at maturity.
      *
-     * @param    mixed    settlement      The security's settlement date.
+     * @param mixed $settlement The security's settlement date.
      *                                    The security's settlement date is the date after the issue date when the security is traded to the buyer.
-     * @param    mixed    maturity        The security's maturity date.
+     * @param mixed $maturity The security's maturity date.
      *                                    The maturity date is the date when the security expires.
-     * @param    int        price         The security's price per $100 face value.
-     * @param    int        redemption    The security's redemption value per $100 face value.
-     * @param    int        basis         The type of day count to use.
+     * @param int $price The security's price per $100 face value
+     * @param int $redemption The security's redemption value per $100 face value
+     * @param int $basis The type of day count to use.
      *                                        0 or omitted    US (NASD) 30/360
      *                                        1                Actual/actual
      *                                        2                Actual/360
      *                                        3                Actual/365
      *                                        4                European 30/360
-     * @return    float
+     *
+     * @return float
      */
     public static function YIELDDISC($settlement, $maturity, $price, $redemption, $basis = 0)
     {
@@ -2260,24 +2288,25 @@ class Financial
     }
 
     /**
-     * YIELDMAT
+     * YIELDMAT.
      *
      * Returns the annual yield of a security that pays interest at maturity.
      *
-     * @param    mixed    settlement     The security's settlement date.
+     * @param mixed $settlement The security's settlement date.
      *                                   The security's settlement date is the date after the issue date when the security is traded to the buyer.
-     * @param    mixed    maturity       The security's maturity date.
+     * @param mixed $maturity The security's maturity date.
      *                                   The maturity date is the date when the security expires.
-     * @param    mixed    issue          The security's issue date.
-     * @param    int        rate         The security's interest rate at date of issue.
-     * @param    int        price        The security's price per $100 face value.
-     * @param    int        basis        The type of day count to use.
+     * @param mixed $issue The security's issue date
+     * @param int $rate The security's interest rate at date of issue
+     * @param int $price The security's price per $100 face value
+     * @param int $basis The type of day count to use.
      *                                        0 or omitted    US (NASD) 30/360
      *                                        1                Actual/actual
      *                                        2                Actual/360
      *                                        3                Actual/365
      *                                        4                European 30/360
-     * @return    float
+     *
+     * @return float
      */
     public static function YIELDMAT($settlement, $maturity, $issue, $rate, $price, $basis = 0)
     {

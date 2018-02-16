@@ -2,48 +2,40 @@
 
 namespace PhpOffice\PhpSpreadsheet\Reader\Xlsx;
 
-/**
- * Copyright (c) 2006 - 2016 PhpSpreadsheet
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * @category    PhpSpreadsheet
- * @copyright   Copyright (c) 2006 - 2016 PhpSpreadsheet (https://github.com/PHPOffice/PhpSpreadsheet)
- * @license     http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt    LGPL
- * @version     ##VERSION##, ##DATE##
- */
+use PhpOffice\PhpSpreadsheet\Calculation\Functions;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeries;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues;
+use PhpOffice\PhpSpreadsheet\Chart\Layout;
+use PhpOffice\PhpSpreadsheet\Chart\Legend;
+use PhpOffice\PhpSpreadsheet\Chart\PlotArea;
+use PhpOffice\PhpSpreadsheet\Chart\Title;
+use PhpOffice\PhpSpreadsheet\RichText\RichText;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Font;
+use SimpleXMLElement;
+
 class Chart
 {
     /**
-     * @param \SimpleXMLElement $component
+     * @param SimpleXMLElement $component
      * @param string $name
      * @param string $format
+     *
+     * @return null|bool|float|int|string
      */
-    private static function getAttribute(\SimpleXMLElement $component, $name, $format)
+    private static function getAttribute(SimpleXMLElement $component, $name, $format)
     {
         $attributes = $component->attributes();
         if (isset($attributes[$name])) {
             if ($format == 'string') {
                 return (string) $attributes[$name];
             } elseif ($format == 'integer') {
-                return (integer) $attributes[$name];
+                return (int) $attributes[$name];
             } elseif ($format == 'boolean') {
-                return (boolean) ($attributes[$name] === '0' || $attributes[$name] !== 'true') ? false : true;
-            } else {
-                return (float) $attributes[$name];
+                return (bool) ($attributes[$name] === '0' || $attributes[$name] !== 'true') ? false : true;
             }
+
+            return (float) $attributes[$name];
         }
 
         return null;
@@ -54,15 +46,17 @@ class Chart
         if (isset($color['rgb'])) {
             return (string) $color['rgb'];
         } elseif (isset($color['indexed'])) {
-            return \PhpOffice\PhpSpreadsheet\Style\Color::indexedColor($color['indexed'] - 7, $background)->getARGB();
+            return Color::indexedColor($color['indexed'] - 7, $background)->getARGB();
         }
     }
 
     /**
-     * @param \SimpleXMLElement $chartElements
+     * @param SimpleXMLElement $chartElements
      * @param string $chartName
+     *
+     * @return \PhpOffice\PhpSpreadsheet\Chart\Chart
      */
-    public static function readChart(\SimpleXMLElement $chartElements, $chartName)
+    public static function readChart(SimpleXMLElement $chartElements, $chartName)
     {
         $namespacesChartMeta = $chartElements->getNamespaces(true);
         $chartElementsC = $chartElements->children($namespacesChartMeta['c']);
@@ -82,22 +76,26 @@ class Chart
                                 foreach ($chartDetails as $chartDetailKey => $chartDetail) {
                                     switch ($chartDetailKey) {
                                         case 'layout':
-                                            $plotAreaLayout = self::chartLayoutDetails($chartDetail, $namespacesChartMeta, 'plotArea');
+                                            $plotAreaLayout = self::chartLayoutDetails($chartDetail, $namespacesChartMeta);
+
                                             break;
                                         case 'catAx':
                                             if (isset($chartDetail->title)) {
-                                                $XaxisLabel = self::chartTitle($chartDetail->title->children($namespacesChartMeta['c']), $namespacesChartMeta, 'cat');
+                                                $XaxisLabel = self::chartTitle($chartDetail->title->children($namespacesChartMeta['c']), $namespacesChartMeta);
                                             }
+
                                             break;
                                         case 'dateAx':
                                             if (isset($chartDetail->title)) {
-                                                $XaxisLabel = self::chartTitle($chartDetail->title->children($namespacesChartMeta['c']), $namespacesChartMeta, 'cat');
+                                                $XaxisLabel = self::chartTitle($chartDetail->title->children($namespacesChartMeta['c']), $namespacesChartMeta);
                                             }
+
                                             break;
                                         case 'valAx':
                                             if (isset($chartDetail->title)) {
-                                                $YaxisLabel = self::chartTitle($chartDetail->title->children($namespacesChartMeta['c']), $namespacesChartMeta, 'cat');
+                                                $YaxisLabel = self::chartTitle($chartDetail->title->children($namespacesChartMeta['c']), $namespacesChartMeta);
                                             }
+
                                             break;
                                         case 'barChart':
                                         case 'bar3DChart':
@@ -106,16 +104,19 @@ class Chart
                                             $plotSer->setPlotDirection($barDirection);
                                             $plotSeries[] = $plotSer;
                                             $plotAttributes = self::readChartAttributes($chartDetail);
+
                                             break;
                                         case 'lineChart':
                                         case 'line3DChart':
                                             $plotSeries[] = self::chartDataSeries($chartDetail, $namespacesChartMeta, $chartDetailKey);
                                             $plotAttributes = self::readChartAttributes($chartDetail);
+
                                             break;
                                         case 'areaChart':
                                         case 'area3DChart':
                                             $plotSeries[] = self::chartDataSeries($chartDetail, $namespacesChartMeta, $chartDetailKey);
                                             $plotAttributes = self::readChartAttributes($chartDetail);
+
                                             break;
                                         case 'doughnutChart':
                                         case 'pieChart':
@@ -125,6 +126,7 @@ class Chart
                                             $plotSer->setPlotStyle($explosion);
                                             $plotSeries[] = $plotSer;
                                             $plotAttributes = self::readChartAttributes($chartDetail);
+
                                             break;
                                         case 'scatterChart':
                                             $scatterStyle = self::getAttribute($chartDetail->scatterStyle, 'val', 'string');
@@ -132,6 +134,7 @@ class Chart
                                             $plotSer->setPlotStyle($scatterStyle);
                                             $plotSeries[] = $plotSer;
                                             $plotAttributes = self::readChartAttributes($chartDetail);
+
                                             break;
                                         case 'bubbleChart':
                                             $bubbleScale = self::getAttribute($chartDetail->bubbleScale, 'val', 'integer');
@@ -139,6 +142,7 @@ class Chart
                                             $plotSer->setPlotStyle($bubbleScale);
                                             $plotSeries[] = $plotSer;
                                             $plotAttributes = self::readChartAttributes($chartDetail);
+
                                             break;
                                         case 'radarChart':
                                             $radarStyle = self::getAttribute($chartDetail->radarStyle, 'val', 'string');
@@ -146,6 +150,7 @@ class Chart
                                             $plotSer->setPlotStyle($radarStyle);
                                             $plotSeries[] = $plotSer;
                                             $plotAttributes = self::readChartAttributes($chartDetail);
+
                                             break;
                                         case 'surfaceChart':
                                         case 'surface3DChart':
@@ -154,27 +159,33 @@ class Chart
                                             $plotSer->setPlotStyle($wireFrame);
                                             $plotSeries[] = $plotSer;
                                             $plotAttributes = self::readChartAttributes($chartDetail);
+
                                             break;
                                         case 'stockChart':
                                             $plotSeries[] = self::chartDataSeries($chartDetail, $namespacesChartMeta, $chartDetailKey);
                                             $plotAttributes = self::readChartAttributes($plotAreaLayout);
+
                                             break;
                                     }
                                 }
                                 if ($plotAreaLayout == null) {
-                                    $plotAreaLayout = new \PhpOffice\PhpSpreadsheet\Chart\Layout();
+                                    $plotAreaLayout = new Layout();
                                 }
-                                $plotArea = new \PhpOffice\PhpSpreadsheet\Chart\PlotArea($plotAreaLayout, $plotSeries);
+                                $plotArea = new PlotArea($plotAreaLayout, $plotSeries);
                                 self::setChartAttributes($plotAreaLayout, $plotAttributes);
+
                                 break;
                             case 'plotVisOnly':
                                 $plotVisOnly = self::getAttribute($chartDetails, 'val', 'string');
+
                                 break;
                             case 'dispBlanksAs':
                                 $dispBlanksAs = self::getAttribute($chartDetails, 'val', 'string');
+
                                 break;
                             case 'title':
-                                $title = self::chartTitle($chartDetails, $namespacesChartMeta, 'title');
+                                $title = self::chartTitle($chartDetails, $namespacesChartMeta);
+
                                 break;
                             case 'legend':
                                 $legendPos = 'r';
@@ -184,27 +195,31 @@ class Chart
                                     switch ($chartDetailKey) {
                                         case 'legendPos':
                                             $legendPos = self::getAttribute($chartDetail, 'val', 'string');
+
                                             break;
                                         case 'overlay':
                                             $legendOverlay = self::getAttribute($chartDetail, 'val', 'boolean');
+
                                             break;
                                         case 'layout':
-                                            $legendLayout = self::chartLayoutDetails($chartDetail, $namespacesChartMeta, 'legend');
+                                            $legendLayout = self::chartLayoutDetails($chartDetail, $namespacesChartMeta);
+
                                             break;
                                     }
                                 }
-                                $legend = new \PhpOffice\PhpSpreadsheet\Chart\Legend($legendPos, $legendLayout, $legendOverlay);
+                                $legend = new Legend($legendPos, $legendLayout, $legendOverlay);
+
                                 break;
                         }
                     }
             }
         }
-        $chart = new \PhpOffice\PhpSpreadsheet\Chart($chartName, $title, $legend, $plotArea, $plotVisOnly, $dispBlanksAs, $XaxisLabel, $YaxisLabel);
+        $chart = new \PhpOffice\PhpSpreadsheet\Chart\Chart($chartName, $title, $legend, $plotArea, $plotVisOnly, $dispBlanksAs, $XaxisLabel, $YaxisLabel);
 
         return $chart;
     }
 
-    private static function chartTitle($titleDetails, $namespacesChartMeta, $type)
+    private static function chartTitle(SimpleXMLElement $titleDetails, array $namespacesChartMeta)
     {
         $caption = [];
         $titleLayout = null;
@@ -219,14 +234,16 @@ class Chart
                                 $caption[] = self::parseRichText($titleDetailPart);
                         }
                     }
+
                     break;
                 case 'layout':
                     $titleLayout = self::chartLayoutDetails($chartDetail, $namespacesChartMeta);
+
                     break;
             }
         }
 
-        return new \PhpOffice\PhpSpreadsheet\Chart\Title($caption, $titleLayout);
+        return new Title($caption, $titleLayout);
     }
 
     private static function chartLayoutDetails($chartDetail, $namespacesChartMeta)
@@ -235,7 +252,7 @@ class Chart
             return null;
         }
         $details = $chartDetail->manualLayout->children($namespacesChartMeta['c']);
-        if (is_null($details)) {
+        if ($details === null) {
             return null;
         }
         $layout = [];
@@ -243,7 +260,7 @@ class Chart
             $layout[$detailKey] = self::getAttribute($detail, 'val', 'string');
         }
 
-        return new \PhpOffice\PhpSpreadsheet\Chart\Layout($layout);
+        return new Layout($layout);
     }
 
     private static function chartDataSeries($chartDetail, $namespacesChartMeta, $plotType)
@@ -257,6 +274,7 @@ class Chart
             switch ($seriesDetailKey) {
                 case 'grouping':
                     $multiSeriesType = self::getAttribute($chartDetail->grouping, 'val', 'string');
+
                     break;
                 case 'ser':
                     $marker = null;
@@ -264,64 +282,73 @@ class Chart
                         switch ($seriesKey) {
                             case 'idx':
                                 $seriesIndex = self::getAttribute($seriesDetail, 'val', 'integer');
+
                                 break;
                             case 'order':
                                 $seriesOrder = self::getAttribute($seriesDetail, 'val', 'integer');
                                 $plotOrder[$seriesIndex] = $seriesOrder;
+
                                 break;
                             case 'tx':
                                 $seriesLabel[$seriesIndex] = self::chartDataSeriesValueSet($seriesDetail, $namespacesChartMeta);
+
                                 break;
                             case 'marker':
                                 $marker = self::getAttribute($seriesDetail->symbol, 'val', 'string');
+
                                 break;
                             case 'smooth':
                                 $smoothLine = self::getAttribute($seriesDetail, 'val', 'boolean');
+
                                 break;
                             case 'cat':
                                 $seriesCategory[$seriesIndex] = self::chartDataSeriesValueSet($seriesDetail, $namespacesChartMeta);
+
                                 break;
                             case 'val':
                                 $seriesValues[$seriesIndex] = self::chartDataSeriesValueSet($seriesDetail, $namespacesChartMeta, $marker);
+
                                 break;
                             case 'xVal':
                                 $seriesCategory[$seriesIndex] = self::chartDataSeriesValueSet($seriesDetail, $namespacesChartMeta, $marker);
+
                                 break;
                             case 'yVal':
                                 $seriesValues[$seriesIndex] = self::chartDataSeriesValueSet($seriesDetail, $namespacesChartMeta, $marker);
+
                                 break;
                         }
                     }
             }
         }
 
-        return new \PhpOffice\PhpSpreadsheet\Chart\DataSeries($plotType, $multiSeriesType, $plotOrder, $seriesLabel, $seriesCategory, $seriesValues, $smoothLine);
+        return new DataSeries($plotType, $multiSeriesType, $plotOrder, $seriesLabel, $seriesCategory, $seriesValues, $smoothLine);
     }
 
-    private static function chartDataSeriesValueSet($seriesDetail, $namespacesChartMeta, $marker = null, $smoothLine = false)
+    private static function chartDataSeriesValueSet($seriesDetail, $namespacesChartMeta, $marker = null)
     {
         if (isset($seriesDetail->strRef)) {
             $seriesSource = (string) $seriesDetail->strRef->f;
             $seriesData = self::chartDataSeriesValues($seriesDetail->strRef->strCache->children($namespacesChartMeta['c']), 's');
 
-            return new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues('String', $seriesSource, $seriesData['formatCode'], $seriesData['pointCount'], $seriesData['dataValues'], $marker, $smoothLine);
+            return new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, $seriesSource, $seriesData['formatCode'], $seriesData['pointCount'], $seriesData['dataValues'], $marker);
         } elseif (isset($seriesDetail->numRef)) {
             $seriesSource = (string) $seriesDetail->numRef->f;
             $seriesData = self::chartDataSeriesValues($seriesDetail->numRef->numCache->children($namespacesChartMeta['c']));
 
-            return new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues('Number', $seriesSource, $seriesData['formatCode'], $seriesData['pointCount'], $seriesData['dataValues'], $marker, $smoothLine);
+            return new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, $seriesSource, $seriesData['formatCode'], $seriesData['pointCount'], $seriesData['dataValues'], $marker);
         } elseif (isset($seriesDetail->multiLvlStrRef)) {
             $seriesSource = (string) $seriesDetail->multiLvlStrRef->f;
             $seriesData = self::chartDataSeriesValuesMultiLevel($seriesDetail->multiLvlStrRef->multiLvlStrCache->children($namespacesChartMeta['c']), 's');
             $seriesData['pointCount'] = count($seriesData['dataValues']);
 
-            return new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues('String', $seriesSource, $seriesData['formatCode'], $seriesData['pointCount'], $seriesData['dataValues'], $marker, $smoothLine);
+            return new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, $seriesSource, $seriesData['formatCode'], $seriesData['pointCount'], $seriesData['dataValues'], $marker);
         } elseif (isset($seriesDetail->multiLvlNumRef)) {
             $seriesSource = (string) $seriesDetail->multiLvlNumRef->f;
             $seriesData = self::chartDataSeriesValuesMultiLevel($seriesDetail->multiLvlNumRef->multiLvlNumCache->children($namespacesChartMeta['c']), 's');
             $seriesData['pointCount'] = count($seriesData['dataValues']);
 
-            return new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues('String', $seriesSource, $seriesData['formatCode'], $seriesData['pointCount'], $seriesData['dataValues'], $marker, $smoothLine);
+            return new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, $seriesSource, $seriesData['formatCode'], $seriesData['pointCount'], $seriesData['dataValues'], $marker);
         }
 
         return null;
@@ -337,17 +364,22 @@ class Chart
             switch ($seriesValueIdx) {
                 case 'ptCount':
                     $pointCount = self::getAttribute($seriesValue, 'val', 'integer');
+
                     break;
                 case 'formatCode':
                     $formatCode = (string) $seriesValue;
+
                     break;
                 case 'pt':
                     $pointVal = self::getAttribute($seriesValue, 'idx', 'integer');
                     if ($dataType == 's') {
                         $seriesVal[$pointVal] = (string) $seriesValue->v;
+                    } elseif ($seriesValue->v === Functions::NA()) {
+                        $seriesVal[$pointVal] = null;
                     } else {
                         $seriesVal[$pointVal] = (float) $seriesValue->v;
                     }
+
                     break;
             }
         }
@@ -370,17 +402,22 @@ class Chart
                 switch ($seriesValueIdx) {
                     case 'ptCount':
                         $pointCount = self::getAttribute($seriesValue, 'val', 'integer');
+
                         break;
                     case 'formatCode':
                         $formatCode = (string) $seriesValue;
+
                         break;
                     case 'pt':
                         $pointVal = self::getAttribute($seriesValue, 'idx', 'integer');
                         if ($dataType == 's') {
                             $seriesVal[$pointVal][] = (string) $seriesValue->v;
+                        } elseif ($seriesValue->v === Functions::NA()) {
+                            $seriesVal[$pointVal] = null;
                         } else {
                             $seriesVal[$pointVal][] = (float) $seriesValue->v;
                         }
+
                         break;
                 }
             }
@@ -393,9 +430,9 @@ class Chart
         ];
     }
 
-    private static function parseRichText($titleDetailPart = null)
+    private static function parseRichText(SimpleXMLElement $titleDetailPart)
     {
-        $value = new \PhpOffice\PhpSpreadsheet\RichText();
+        $value = new RichText();
 
         foreach ($titleDetailPart as $titleDetailElementKey => $titleDetailElement) {
             if (isset($titleDetailElement->t)) {
@@ -407,47 +444,47 @@ class Chart
                 }
 
                 $fontSize = (self::getAttribute($titleDetailElement->rPr, 'sz', 'integer'));
-                if (!is_null($fontSize)) {
+                if ($fontSize !== null) {
                     $objText->getFont()->setSize(floor($fontSize / 100));
                 }
 
                 $fontColor = (self::getAttribute($titleDetailElement->rPr, 'color', 'string'));
-                if (!is_null($fontColor)) {
-                    $objText->getFont()->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color(self::readColor($fontColor)));
+                if ($fontColor !== null) {
+                    $objText->getFont()->setColor(new Color(self::readColor($fontColor)));
                 }
 
                 $bold = self::getAttribute($titleDetailElement->rPr, 'b', 'boolean');
-                if (!is_null($bold)) {
+                if ($bold !== null) {
                     $objText->getFont()->setBold($bold);
                 }
 
                 $italic = self::getAttribute($titleDetailElement->rPr, 'i', 'boolean');
-                if (!is_null($italic)) {
+                if ($italic !== null) {
                     $objText->getFont()->setItalic($italic);
                 }
 
                 $baseline = self::getAttribute($titleDetailElement->rPr, 'baseline', 'integer');
-                if (!is_null($baseline)) {
+                if ($baseline !== null) {
                     if ($baseline > 0) {
-                        $objText->getFont()->setSuperScript(true);
+                        $objText->getFont()->setSuperscript(true);
                     } elseif ($baseline < 0) {
-                        $objText->getFont()->setSubScript(true);
+                        $objText->getFont()->setSubscript(true);
                     }
                 }
 
                 $underscore = (self::getAttribute($titleDetailElement->rPr, 'u', 'string'));
-                if (!is_null($underscore)) {
+                if ($underscore !== null) {
                     if ($underscore == 'sng') {
-                        $objText->getFont()->setUnderline(\PhpOffice\PhpSpreadsheet\Style\Font::UNDERLINE_SINGLE);
+                        $objText->getFont()->setUnderline(Font::UNDERLINE_SINGLE);
                     } elseif ($underscore == 'dbl') {
-                        $objText->getFont()->setUnderline(\PhpOffice\PhpSpreadsheet\Style\Font::UNDERLINE_DOUBLE);
+                        $objText->getFont()->setUnderline(Font::UNDERLINE_DOUBLE);
                     } else {
-                        $objText->getFont()->setUnderline(\PhpOffice\PhpSpreadsheet\Style\Font::UNDERLINE_NONE);
+                        $objText->getFont()->setUnderline(Font::UNDERLINE_NONE);
                     }
                 }
 
                 $strikethrough = (self::getAttribute($titleDetailElement->rPr, 's', 'string'));
-                if (!is_null($strikethrough)) {
+                if ($strikethrough !== null) {
                     if ($strikethrough == 'noStrike') {
                         $objText->getFont()->setStrikethrough(false);
                     } else {
@@ -491,32 +528,40 @@ class Chart
     }
 
     /**
-     * @param \PhpOffice\PhpSpreadsheet\Chart\Layout $plotArea
+     * @param Layout $plotArea
+     * @param mixed $plotAttributes
      */
-    private static function setChartAttributes(\PhpOffice\PhpSpreadsheet\Chart\Layout $plotArea, $plotAttributes)
+    private static function setChartAttributes(Layout $plotArea, $plotAttributes)
     {
         foreach ($plotAttributes as $plotAttributeKey => $plotAttributeValue) {
             switch ($plotAttributeKey) {
                 case 'showLegendKey':
                     $plotArea->setShowLegendKey($plotAttributeValue);
+
                     break;
                 case 'showVal':
                     $plotArea->setShowVal($plotAttributeValue);
+
                     break;
                 case 'showCatName':
                     $plotArea->setShowCatName($plotAttributeValue);
+
                     break;
                 case 'showSerName':
                     $plotArea->setShowSerName($plotAttributeValue);
+
                     break;
                 case 'showPercent':
                     $plotArea->setShowPercent($plotAttributeValue);
+
                     break;
                 case 'showBubbleSize':
                     $plotArea->setShowBubbleSize($plotAttributeValue);
+
                     break;
                 case 'showLeaderLines':
                     $plotArea->setShowLeaderLines($plotAttributeValue);
+
                     break;
             }
         }

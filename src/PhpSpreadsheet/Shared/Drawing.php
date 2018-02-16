@@ -2,54 +2,34 @@
 
 namespace PhpOffice\PhpSpreadsheet\Shared;
 
-/**
- * Copyright (c) 2006 - 2016 PhpSpreadsheet
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * @category   PhpSpreadsheet
- * @copyright  Copyright (c) 2006 - 2016 PhpSpreadsheet (https://github.com/PHPOffice/PhpSpreadsheet)
- * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt    LGPL
- * @version    ##VERSION##, ##DATE##
- */
 class Drawing
 {
     /**
-     * Convert pixels to EMU
+     * Convert pixels to EMU.
      *
-     * @param     int $pValue    Value in pixels
-     * @return     int            Value in EMU
+     * @param int $pValue Value in pixels
+     *
+     * @return int Value in EMU
      */
-    public static function pixelsToEMU($pValue = 0)
+    public static function pixelsToEMU($pValue)
     {
         return round($pValue * 9525);
     }
 
     /**
-     * Convert EMU to pixels
+     * Convert EMU to pixels.
      *
-     * @param     int $pValue    Value in EMU
-     * @return     int            Value in pixels
+     * @param int $pValue Value in EMU
+     *
+     * @return int Value in pixels
      */
-    public static function EMUToPixels($pValue = 0)
+    public static function EMUToPixels($pValue)
     {
         if ($pValue != 0) {
             return round($pValue / 9525);
-        } else {
-            return 0;
         }
+
+        return 0;
     }
 
     /**
@@ -57,9 +37,10 @@ class Drawing
      * By inspection of a real Excel file using Calibri 11, one finds 1000px ~ 142.85546875
      * This gives a conversion factor of 7. Also, we assume that pixels and font size are proportional.
      *
-     * @param    int $pValue    Value in pixels
-     * @param    \PhpOffice\PhpSpreadsheet\Style\Font $pDefaultFont    Default font of the workbook
-     * @return   int            Value in cell dimension
+     * @param int $pValue Value in pixels
+     * @param \PhpOffice\PhpSpreadsheet\Style\Font $pDefaultFont Default font of the workbook
+     *
+     * @return int Value in cell dimension
      */
     public static function pixelsToCellDimension($pValue, \PhpOffice\PhpSpreadsheet\Style\Font $pDefaultFont)
     {
@@ -67,24 +48,25 @@ class Drawing
         $name = $pDefaultFont->getName();
         $size = $pDefaultFont->getSize();
 
-        if (isset(\PhpOffice\PhpSpreadsheet\Shared\Font::$defaultColumnWidths[$name][$size])) {
+        if (isset(Font::$defaultColumnWidths[$name][$size])) {
             // Exact width can be determined
-            $colWidth = $pValue * \PhpOffice\PhpSpreadsheet\Shared\Font::$defaultColumnWidths[$name][$size]['width'] / \PhpOffice\PhpSpreadsheet\Shared\Font::$defaultColumnWidths[$name][$size]['px'];
+            $colWidth = $pValue * Font::$defaultColumnWidths[$name][$size]['width'] / Font::$defaultColumnWidths[$name][$size]['px'];
         } else {
             // We don't have data for this particular font and size, use approximation by
             // extrapolating from Calibri 11
-            $colWidth = $pValue * 11 * \PhpOffice\PhpSpreadsheet\Shared\Font::$defaultColumnWidths['Calibri'][11]['width'] / \PhpOffice\PhpSpreadsheet\Shared\Font::$defaultColumnWidths['Calibri'][11]['px'] / $size;
+            $colWidth = $pValue * 11 * Font::$defaultColumnWidths['Calibri'][11]['width'] / Font::$defaultColumnWidths['Calibri'][11]['px'] / $size;
         }
 
         return $colWidth;
     }
 
     /**
-     * Convert column width from (intrinsic) Excel units to pixels
+     * Convert column width from (intrinsic) Excel units to pixels.
      *
-     * @param   float    $pValue        Value in cell dimension
-     * @param   \PhpOffice\PhpSpreadsheet\Style\Font $pDefaultFont    Default font of the workbook
-     * @return  int        Value in pixels
+     * @param float $pValue Value in cell dimension
+     * @param \PhpOffice\PhpSpreadsheet\Style\Font $pDefaultFont Default font of the workbook
+     *
+     * @return int Value in pixels
      */
     public static function cellDimensionToPixels($pValue, \PhpOffice\PhpSpreadsheet\Style\Font $pDefaultFont)
     {
@@ -92,13 +74,13 @@ class Drawing
         $name = $pDefaultFont->getName();
         $size = $pDefaultFont->getSize();
 
-        if (isset(\PhpOffice\PhpSpreadsheet\Shared\Font::$defaultColumnWidths[$name][$size])) {
+        if (isset(Font::$defaultColumnWidths[$name][$size])) {
             // Exact width can be determined
-            $colWidth = $pValue * \PhpOffice\PhpSpreadsheet\Shared\Font::$defaultColumnWidths[$name][$size]['px'] / \PhpOffice\PhpSpreadsheet\Shared\Font::$defaultColumnWidths[$name][$size]['width'];
+            $colWidth = $pValue * Font::$defaultColumnWidths[$name][$size]['px'] / Font::$defaultColumnWidths[$name][$size]['width'];
         } else {
             // We don't have data for this particular font and size, use approximation by
             // extrapolating from Calibri 11
-            $colWidth = $pValue * $size * \PhpOffice\PhpSpreadsheet\Shared\Font::$defaultColumnWidths['Calibri'][11]['px'] / \PhpOffice\PhpSpreadsheet\Shared\Font::$defaultColumnWidths['Calibri'][11]['width'] / 11;
+            $colWidth = $pValue * $size * Font::$defaultColumnWidths['Calibri'][11]['px'] / Font::$defaultColumnWidths['Calibri'][11]['width'] / 11;
         }
 
         // Round pixels to closest integer
@@ -108,62 +90,68 @@ class Drawing
     }
 
     /**
-     * Convert pixels to points
+     * Convert pixels to points.
      *
-     * @param     int $pValue    Value in pixels
-     * @return     float            Value in points
+     * @param int $pValue Value in pixels
+     *
+     * @return float Value in points
      */
-    public static function pixelsToPoints($pValue = 0)
+    public static function pixelsToPoints($pValue)
     {
         return $pValue * 0.67777777;
     }
 
     /**
-     * Convert points to pixels
+     * Convert points to pixels.
      *
-     * @param     int $pValue    Value in points
-     * @return     int            Value in pixels
+     * @param int $pValue Value in points
+     *
+     * @return int Value in pixels
      */
-    public static function pointsToPixels($pValue = 0)
+    public static function pointsToPixels($pValue)
     {
         if ($pValue != 0) {
             return (int) ceil($pValue * 1.333333333);
-        } else {
-            return 0;
         }
+
+        return 0;
     }
 
     /**
-     * Convert degrees to angle
+     * Convert degrees to angle.
      *
-     * @param     int $pValue    Degrees
-     * @return     int            Angle
+     * @param int $pValue Degrees
+     *
+     * @return int Angle
      */
-    public static function degreesToAngle($pValue = 0)
+    public static function degreesToAngle($pValue)
     {
         return (int) round($pValue * 60000);
     }
 
     /**
-     * Convert angle to degrees
+     * Convert angle to degrees.
      *
-     * @param     int $pValue    Angle
-     * @return     int            Degrees
+     * @param int $pValue Angle
+     *
+     * @return int Degrees
      */
-    public static function angleToDegrees($pValue = 0)
+    public static function angleToDegrees($pValue)
     {
         if ($pValue != 0) {
             return round($pValue / 60000);
-        } else {
-            return 0;
         }
+
+        return 0;
     }
 
     /**
-     * Create a new image from file. By alexander at alexauto dot nl
+     * Create a new image from file. By alexander at alexauto dot nl.
      *
-     * @link http://www.php.net/manual/en/function.imagecreatefromwbmp.php#86214
+     * @see http://www.php.net/manual/en/function.imagecreatefromwbmp.php#86214
+     *
      * @param string $p_sFile Path to Windows DIB (BMP) image
+     *
      * @return resource
      */
     public static function imagecreatefrombmp($p_sFile)

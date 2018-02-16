@@ -2,146 +2,131 @@
 
 namespace PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-/**
- * PhpSpreadsheet
- *
- * Copyright (c) 2006 - 2015 PhpSpreadsheet
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * @category   PhpSpreadsheet
- * @copyright  Copyright (c) 2006 - 2015 PhpSpreadsheet (https://github.com/PHPOffice/PhpSpreadsheet)
- * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt    LGPL
- * @version    ##VERSION##, ##DATE##
- */
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\RichText\RichText;
+use PhpOffice\PhpSpreadsheet\Shared\StringHelper;
+use PhpOffice\PhpSpreadsheet\Shared\XMLWriter;
+use PhpOffice\PhpSpreadsheet\Style\Conditional;
+use PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column;
+use PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule;
+use PhpOffice\PhpSpreadsheet\Worksheet\SheetView;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet as PhpspreadsheetWorksheet;
+use PhpOffice\PhpSpreadsheet\Writer\Exception as WriterException;
 
 /**
  * @category   PhpSpreadsheet
+ *
  * @copyright  Copyright (c) 2006 - 2015 PhpSpreadsheet (https://github.com/PHPOffice/PhpSpreadsheet)
  */
 class Worksheet extends WriterPart
 {
     /**
-     * Write worksheet to XML format
+     * Write worksheet to XML format.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet        $pSheet
-     * @param    string[]                $pStringTable
-     * @param    bool                    $includeCharts    Flag indicating if we should write charts
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
-     * @return    string                    XML Output
+     * @param PhpspreadsheetWorksheet $pSheet
+     * @param string[] $pStringTable
+     * @param bool $includeCharts Flag indicating if we should write charts
+     *
+     * @throws WriterException
+     *
+     * @return string XML Output
      */
-    public function writeWorksheet($pSheet = null, $pStringTable = null, $includeCharts = false)
+    public function writeWorksheet(PhpspreadsheetWorksheet $pSheet, $pStringTable = null, $includeCharts = false)
     {
-        if (!is_null($pSheet)) {
-            // Create XML writer
-            $objWriter = null;
-            if ($this->getParentWriter()->getUseDiskCaching()) {
-                $objWriter = new \PhpOffice\PhpSpreadsheet\Shared\XMLWriter(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter::STORAGE_DISK, $this->getParentWriter()->getDiskCachingDirectory());
-            } else {
-                $objWriter = new \PhpOffice\PhpSpreadsheet\Shared\XMLWriter(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter::STORAGE_MEMORY);
-            }
-
-            // XML header
-            $objWriter->startDocument('1.0', 'UTF-8', 'yes');
-
-            // Worksheet
-            $objWriter->startElement('worksheet');
-            $objWriter->writeAttribute('xml:space', 'preserve');
-            $objWriter->writeAttribute('xmlns', 'http://schemas.openxmlformats.org/spreadsheetml/2006/main');
-            $objWriter->writeAttribute('xmlns:r', 'http://schemas.openxmlformats.org/officeDocument/2006/relationships');
-
-                // sheetPr
-                $this->writeSheetPr($objWriter, $pSheet);
-
-                // Dimension
-                $this->writeDimension($objWriter, $pSheet);
-
-                // sheetViews
-                $this->writeSheetViews($objWriter, $pSheet);
-
-                // sheetFormatPr
-                $this->writeSheetFormatPr($objWriter, $pSheet);
-
-                // cols
-                $this->writeCols($objWriter, $pSheet);
-
-                // sheetData
-                $this->writeSheetData($objWriter, $pSheet, $pStringTable);
-
-                // sheetProtection
-                $this->writeSheetProtection($objWriter, $pSheet);
-
-                // protectedRanges
-                $this->writeProtectedRanges($objWriter, $pSheet);
-
-                // autoFilter
-                $this->writeAutoFilter($objWriter, $pSheet);
-
-                // mergeCells
-                $this->writeMergeCells($objWriter, $pSheet);
-
-                // conditionalFormatting
-                $this->writeConditionalFormatting($objWriter, $pSheet);
-
-                // dataValidations
-                $this->writeDataValidations($objWriter, $pSheet);
-
-                // hyperlinks
-                $this->writeHyperlinks($objWriter, $pSheet);
-
-                // Print options
-                $this->writePrintOptions($objWriter, $pSheet);
-
-                // Page margins
-                $this->writePageMargins($objWriter, $pSheet);
-
-                // Page setup
-                $this->writePageSetup($objWriter, $pSheet);
-
-                // Header / footer
-                $this->writeHeaderFooter($objWriter, $pSheet);
-
-                // Breaks
-                $this->writeBreaks($objWriter, $pSheet);
-
-                // Drawings and/or Charts
-                $this->writeDrawings($objWriter, $pSheet, $includeCharts);
-
-                // LegacyDrawing
-                $this->writeLegacyDrawing($objWriter, $pSheet);
-
-                // LegacyDrawingHF
-                $this->writeLegacyDrawingHF($objWriter, $pSheet);
-
-            $objWriter->endElement();
-
-            // Return
-            return $objWriter->getData();
+        // Create XML writer
+        $objWriter = null;
+        if ($this->getParentWriter()->getUseDiskCaching()) {
+            $objWriter = new XMLWriter(XMLWriter::STORAGE_DISK, $this->getParentWriter()->getDiskCachingDirectory());
         } else {
-            throw new \PhpOffice\PhpSpreadsheet\Writer\Exception('Invalid \\PhpOffice\\PhpSpreadsheet\\Worksheet object passed.');
+            $objWriter = new XMLWriter(XMLWriter::STORAGE_MEMORY);
         }
+
+        // XML header
+        $objWriter->startDocument('1.0', 'UTF-8', 'yes');
+
+        // Worksheet
+        $objWriter->startElement('worksheet');
+        $objWriter->writeAttribute('xml:space', 'preserve');
+        $objWriter->writeAttribute('xmlns', 'http://schemas.openxmlformats.org/spreadsheetml/2006/main');
+        $objWriter->writeAttribute('xmlns:r', 'http://schemas.openxmlformats.org/officeDocument/2006/relationships');
+
+        // sheetPr
+        $this->writeSheetPr($objWriter, $pSheet);
+
+        // Dimension
+        $this->writeDimension($objWriter, $pSheet);
+
+        // sheetViews
+        $this->writeSheetViews($objWriter, $pSheet);
+
+        // sheetFormatPr
+        $this->writeSheetFormatPr($objWriter, $pSheet);
+
+        // cols
+        $this->writeCols($objWriter, $pSheet);
+
+        // sheetData
+        $this->writeSheetData($objWriter, $pSheet, $pStringTable);
+
+        // sheetProtection
+        $this->writeSheetProtection($objWriter, $pSheet);
+
+        // protectedRanges
+        $this->writeProtectedRanges($objWriter, $pSheet);
+
+        // autoFilter
+        $this->writeAutoFilter($objWriter, $pSheet);
+
+        // mergeCells
+        $this->writeMergeCells($objWriter, $pSheet);
+
+        // conditionalFormatting
+        $this->writeConditionalFormatting($objWriter, $pSheet);
+
+        // dataValidations
+        $this->writeDataValidations($objWriter, $pSheet);
+
+        // hyperlinks
+        $this->writeHyperlinks($objWriter, $pSheet);
+
+        // Print options
+        $this->writePrintOptions($objWriter, $pSheet);
+
+        // Page margins
+        $this->writePageMargins($objWriter, $pSheet);
+
+        // Page setup
+        $this->writePageSetup($objWriter, $pSheet);
+
+        // Header / footer
+        $this->writeHeaderFooter($objWriter, $pSheet);
+
+        // Breaks
+        $this->writeBreaks($objWriter, $pSheet);
+
+        // Drawings and/or Charts
+        $this->writeDrawings($objWriter, $pSheet, $includeCharts);
+
+        // LegacyDrawing
+        $this->writeLegacyDrawing($objWriter, $pSheet);
+
+        // LegacyDrawingHF
+        $this->writeLegacyDrawingHF($objWriter, $pSheet);
+
+        $objWriter->endElement();
+
+        // Return
+        return $objWriter->getData();
     }
 
     /**
-     * Write SheetPr
+     * Write SheetPr.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter        $objWriter        XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet                $pSheet            Worksheet
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
      */
-    private function writeSheetPr(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null)
+    private function writeSheetPr(XMLWriter $objWriter, PhpspreadsheetWorksheet $pSheet)
     {
         // sheetPr
         $objWriter->startElement('sheetPr');
@@ -182,13 +167,12 @@ class Worksheet extends WriterPart
     }
 
     /**
-     * Write Dimension
+     * Write Dimension.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter    $objWriter        XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet            $pSheet            Worksheet
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
      */
-    private function writeDimension(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null)
+    private function writeDimension(XMLWriter $objWriter, PhpspreadsheetWorksheet $pSheet)
     {
         // dimension
         $objWriter->startElement('dimension');
@@ -197,13 +181,14 @@ class Worksheet extends WriterPart
     }
 
     /**
-     * Write SheetViews
+     * Write SheetViews.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter            $objWriter        XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet                    $pSheet            Worksheet
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
+     *
+     * @throws WriterException
      */
-    private function writeSheetViews(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null)
+    private function writeSheetViews(XMLWriter $objWriter, PhpspreadsheetWorksheet $pSheet)
     {
         // sheetViews
         $objWriter->startElement('sheetViews');
@@ -228,7 +213,7 @@ class Worksheet extends WriterPart
         }
 
         // View Layout Type
-        if ($pSheet->getSheetView()->getView() !== \PhpOffice\PhpSpreadsheet\Worksheet\SheetView::SHEETVIEW_NORMAL) {
+        if ($pSheet->getSheetView()->getView() !== SheetView::SHEETVIEW_NORMAL) {
             $objWriter->writeAttribute('view', $pSheet->getSheetView()->getView());
         }
 
@@ -255,31 +240,31 @@ class Worksheet extends WriterPart
 
         // Pane
         $pane = '';
-        $topLeftCell = $pSheet->getFreezePane();
-        if (($topLeftCell != '') && ($topLeftCell != 'A1')) {
-            $activeCell = $topLeftCell;
-            // Calculate freeze coordinates
-            $xSplit = $ySplit = 0;
+        if ($pSheet->getFreezePane()) {
+            list($xSplit, $ySplit) = Coordinate::coordinateFromString($pSheet->getFreezePane());
+            $xSplit = Coordinate::columnIndexFromString($xSplit);
+            --$xSplit;
+            --$ySplit;
 
-            list($xSplit, $ySplit) = \PhpOffice\PhpSpreadsheet\Cell::coordinateFromString($topLeftCell);
-            $xSplit = \PhpOffice\PhpSpreadsheet\Cell::columnIndexFromString($xSplit);
+            $topLeftCell = $pSheet->getTopLeftCell();
+            $activeCell = $topLeftCell;
 
             // pane
             $pane = 'topRight';
             $objWriter->startElement('pane');
-            if ($xSplit > 1) {
-                $objWriter->writeAttribute('xSplit', $xSplit - 1);
+            if ($xSplit > 0) {
+                $objWriter->writeAttribute('xSplit', $xSplit);
             }
-            if ($ySplit > 1) {
-                $objWriter->writeAttribute('ySplit', $ySplit - 1);
-                $pane = ($xSplit > 1) ? 'bottomRight' : 'bottomLeft';
+            if ($ySplit > 0) {
+                $objWriter->writeAttribute('ySplit', $ySplit);
+                $pane = ($xSplit > 0) ? 'bottomRight' : 'bottomLeft';
             }
             $objWriter->writeAttribute('topLeftCell', $topLeftCell);
             $objWriter->writeAttribute('activePane', $pane);
             $objWriter->writeAttribute('state', 'frozen');
             $objWriter->endElement();
 
-            if (($xSplit > 1) && ($ySplit > 1)) {
+            if (($xSplit > 0) && ($ySplit > 0)) {
                 //    Write additional selections if more than two panes (ie both an X and a Y split)
                 $objWriter->startElement('selection');
                 $objWriter->writeAttribute('pane', 'topRight');
@@ -291,7 +276,6 @@ class Worksheet extends WriterPart
         }
 
         // Selection
-//      if ($pane != '') {
         // Only need to write selection element if we have a split pane
         // We cheat a little by over-riding the active cell selection, setting it to the split cell
         $objWriter->startElement('selection');
@@ -301,7 +285,6 @@ class Worksheet extends WriterPart
         $objWriter->writeAttribute('activeCell', $activeCell);
         $objWriter->writeAttribute('sqref', $activeCell);
         $objWriter->endElement();
-//      }
 
         $objWriter->endElement();
 
@@ -309,13 +292,12 @@ class Worksheet extends WriterPart
     }
 
     /**
-     * Write SheetFormatPr
+     * Write SheetFormatPr.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter        XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet          $pSheet            Worksheet
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
      */
-    private function writeSheetFormatPr(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null)
+    private function writeSheetFormatPr(XMLWriter $objWriter, PhpspreadsheetWorksheet $pSheet)
     {
         // sheetFormatPr
         $objWriter->startElement('sheetFormatPr');
@@ -323,7 +305,7 @@ class Worksheet extends WriterPart
         // Default row height
         if ($pSheet->getDefaultRowDimension()->getRowHeight() >= 0) {
             $objWriter->writeAttribute('customHeight', 'true');
-            $objWriter->writeAttribute('defaultRowHeight', \PhpOffice\PhpSpreadsheet\Shared\StringHelper::formatNumber($pSheet->getDefaultRowDimension()->getRowHeight()));
+            $objWriter->writeAttribute('defaultRowHeight', StringHelper::formatNumber($pSheet->getDefaultRowDimension()->getRowHeight()));
         } else {
             $objWriter->writeAttribute('defaultRowHeight', '14.4');
         }
@@ -336,7 +318,7 @@ class Worksheet extends WriterPart
 
         // Default column width
         if ($pSheet->getDefaultColumnDimension()->getWidth() >= 0) {
-            $objWriter->writeAttribute('defaultColWidth', \PhpOffice\PhpSpreadsheet\Shared\StringHelper::formatNumber($pSheet->getDefaultColumnDimension()->getWidth()));
+            $objWriter->writeAttribute('defaultColWidth', StringHelper::formatNumber($pSheet->getDefaultColumnDimension()->getWidth()));
         }
 
         // Outline level - row
@@ -361,13 +343,12 @@ class Worksheet extends WriterPart
     }
 
     /**
-     * Write Cols
+     * Write Cols.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet $pSheet Worksheet
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
      */
-    private function writeCols(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null)
+    private function writeCols(XMLWriter $objWriter, PhpspreadsheetWorksheet $pSheet)
     {
         // cols
         if (count($pSheet->getColumnDimensions()) > 0) {
@@ -379,15 +360,15 @@ class Worksheet extends WriterPart
             foreach ($pSheet->getColumnDimensions() as $colDimension) {
                 // col
                 $objWriter->startElement('col');
-                $objWriter->writeAttribute('min', \PhpOffice\PhpSpreadsheet\Cell::columnIndexFromString($colDimension->getColumnIndex()));
-                $objWriter->writeAttribute('max', \PhpOffice\PhpSpreadsheet\Cell::columnIndexFromString($colDimension->getColumnIndex()));
+                $objWriter->writeAttribute('min', Coordinate::columnIndexFromString($colDimension->getColumnIndex()));
+                $objWriter->writeAttribute('max', Coordinate::columnIndexFromString($colDimension->getColumnIndex()));
 
                 if ($colDimension->getWidth() < 0) {
                     // No width set, apply default of 10
                     $objWriter->writeAttribute('width', '9.10');
                 } else {
                     // Width set
-                    $objWriter->writeAttribute('width', \PhpOffice\PhpSpreadsheet\Shared\StringHelper::formatNumber($colDimension->getWidth()));
+                    $objWriter->writeAttribute('width', StringHelper::formatNumber($colDimension->getWidth()));
                 }
 
                 // Column visibility
@@ -426,13 +407,12 @@ class Worksheet extends WriterPart
     }
 
     /**
-     * Write SheetProtection
+     * Write SheetProtection.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter            $objWriter        XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet                    $pSheet            Worksheet
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
      */
-    private function writeSheetProtection(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null)
+    private function writeSheetProtection(XMLWriter $objWriter, PhpspreadsheetWorksheet $pSheet)
     {
         // sheetProtection
         $objWriter->startElement('sheetProtection');
@@ -461,13 +441,14 @@ class Worksheet extends WriterPart
     }
 
     /**
-     * Write ConditionalFormatting
+     * Write ConditionalFormatting.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter            $objWriter        XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet                    $pSheet            Worksheet
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
+     *
+     * @throws WriterException
      */
-    private function writeConditionalFormatting(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null)
+    private function writeConditionalFormatting(XMLWriter $objWriter, PhpspreadsheetWorksheet $pSheet)
     {
         // Conditional id
         $id = 1;
@@ -479,7 +460,7 @@ class Worksheet extends WriterPart
                 // if ($this->getParentWriter()->getStylesConditionalHashTable()->getIndexForHashCode($conditional->getHashCode()) == '') {
                 //    continue;
                 // }
-                if ($conditional->getConditionType() != \PhpOffice\PhpSpreadsheet\Style\Conditional::CONDITION_NONE) {
+                if ($conditional->getConditionType() != Conditional::CONDITION_NONE) {
                     // conditionalFormatting
                     $objWriter->startElement('conditionalFormatting');
                     $objWriter->writeAttribute('sqref', $cellCoordinate);
@@ -490,35 +471,39 @@ class Worksheet extends WriterPart
                     $objWriter->writeAttribute('dxfId', $this->getParentWriter()->getStylesConditionalHashTable()->getIndexForHashCode($conditional->getHashCode()));
                     $objWriter->writeAttribute('priority', $id++);
 
-                    if (($conditional->getConditionType() == \PhpOffice\PhpSpreadsheet\Style\Conditional::CONDITION_CELLIS || $conditional->getConditionType() == \PhpOffice\PhpSpreadsheet\Style\Conditional::CONDITION_CONTAINSTEXT)
-                        && $conditional->getOperatorType() != \PhpOffice\PhpSpreadsheet\Style\Conditional::OPERATOR_NONE) {
+                    if (($conditional->getConditionType() == Conditional::CONDITION_CELLIS || $conditional->getConditionType() == Conditional::CONDITION_CONTAINSTEXT)
+                        && $conditional->getOperatorType() != Conditional::OPERATOR_NONE) {
                         $objWriter->writeAttribute('operator', $conditional->getOperatorType());
                     }
 
-                    if ($conditional->getConditionType() == \PhpOffice\PhpSpreadsheet\Style\Conditional::CONDITION_CONTAINSTEXT
-                        && !is_null($conditional->getText())) {
+                    if ($conditional->getConditionType() == Conditional::CONDITION_CONTAINSTEXT
+                        && $conditional->getText() !== null) {
                         $objWriter->writeAttribute('text', $conditional->getText());
                     }
 
-                    if ($conditional->getConditionType() == \PhpOffice\PhpSpreadsheet\Style\Conditional::CONDITION_CONTAINSTEXT
-                        && $conditional->getOperatorType() == \PhpOffice\PhpSpreadsheet\Style\Conditional::OPERATOR_CONTAINSTEXT
-                        && !is_null($conditional->getText())) {
+                    if ($conditional->getStopIfTrue()) {
+                        $objWriter->writeAttribute('stopIfTrue', '1');
+                    }
+
+                    if ($conditional->getConditionType() == Conditional::CONDITION_CONTAINSTEXT
+                        && $conditional->getOperatorType() == Conditional::OPERATOR_CONTAINSTEXT
+                        && $conditional->getText() !== null) {
                         $objWriter->writeElement('formula', 'NOT(ISERROR(SEARCH("' . $conditional->getText() . '",' . $cellCoordinate . ')))');
-                    } elseif ($conditional->getConditionType() == \PhpOffice\PhpSpreadsheet\Style\Conditional::CONDITION_CONTAINSTEXT
-                        && $conditional->getOperatorType() == \PhpOffice\PhpSpreadsheet\Style\Conditional::OPERATOR_BEGINSWITH
-                        && !is_null($conditional->getText())) {
+                    } elseif ($conditional->getConditionType() == Conditional::CONDITION_CONTAINSTEXT
+                        && $conditional->getOperatorType() == Conditional::OPERATOR_BEGINSWITH
+                        && $conditional->getText() !== null) {
                         $objWriter->writeElement('formula', 'LEFT(' . $cellCoordinate . ',' . strlen($conditional->getText()) . ')="' . $conditional->getText() . '"');
-                    } elseif ($conditional->getConditionType() == \PhpOffice\PhpSpreadsheet\Style\Conditional::CONDITION_CONTAINSTEXT
-                        && $conditional->getOperatorType() == \PhpOffice\PhpSpreadsheet\Style\Conditional::OPERATOR_ENDSWITH
-                        && !is_null($conditional->getText())) {
+                    } elseif ($conditional->getConditionType() == Conditional::CONDITION_CONTAINSTEXT
+                        && $conditional->getOperatorType() == Conditional::OPERATOR_ENDSWITH
+                        && $conditional->getText() !== null) {
                         $objWriter->writeElement('formula', 'RIGHT(' . $cellCoordinate . ',' . strlen($conditional->getText()) . ')="' . $conditional->getText() . '"');
-                    } elseif ($conditional->getConditionType() == \PhpOffice\PhpSpreadsheet\Style\Conditional::CONDITION_CONTAINSTEXT
-                        && $conditional->getOperatorType() == \PhpOffice\PhpSpreadsheet\Style\Conditional::OPERATOR_NOTCONTAINS
-                        && !is_null($conditional->getText())) {
+                    } elseif ($conditional->getConditionType() == Conditional::CONDITION_CONTAINSTEXT
+                        && $conditional->getOperatorType() == Conditional::OPERATOR_NOTCONTAINS
+                        && $conditional->getText() !== null) {
                         $objWriter->writeElement('formula', 'ISERROR(SEARCH("' . $conditional->getText() . '",' . $cellCoordinate . '))');
-                    } elseif ($conditional->getConditionType() == \PhpOffice\PhpSpreadsheet\Style\Conditional::CONDITION_CELLIS
-                        || $conditional->getConditionType() == \PhpOffice\PhpSpreadsheet\Style\Conditional::CONDITION_CONTAINSTEXT
-                        || $conditional->getConditionType() == \PhpOffice\PhpSpreadsheet\Style\Conditional::CONDITION_EXPRESSION) {
+                    } elseif ($conditional->getConditionType() == Conditional::CONDITION_CELLIS
+                        || $conditional->getConditionType() == Conditional::CONDITION_CONTAINSTEXT
+                        || $conditional->getConditionType() == Conditional::CONDITION_EXPRESSION) {
                         foreach ($conditional->getConditions() as $formula) {
                             // Formula
                             $objWriter->writeElement('formula', $formula);
@@ -534,19 +519,19 @@ class Worksheet extends WriterPart
     }
 
     /**
-     * Write DataValidations
+     * Write DataValidations.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter            $objWriter        XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet                    $pSheet            Worksheet
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
      */
-    private function writeDataValidations(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null)
+    private function writeDataValidations(XMLWriter $objWriter, PhpspreadsheetWorksheet $pSheet)
     {
         // Datavalidation collection
         $dataValidationCollection = $pSheet->getDataValidationCollection();
 
         // Write data validations?
         if (!empty($dataValidationCollection)) {
+            $dataValidationCollection = Coordinate::mergeRangesInCollection($dataValidationCollection);
             $objWriter->startElement('dataValidations');
             $objWriter->writeAttribute('count', count($dataValidationCollection));
 
@@ -600,13 +585,12 @@ class Worksheet extends WriterPart
     }
 
     /**
-     * Write Hyperlinks
+     * Write Hyperlinks.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter            $objWriter        XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet                    $pSheet            Worksheet
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
      */
-    private function writeHyperlinks(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null)
+    private function writeHyperlinks(XMLWriter $objWriter, PhpspreadsheetWorksheet $pSheet)
     {
         // Hyperlink collection
         $hyperlinkCollection = $pSheet->getHyperlinkCollection();
@@ -641,13 +625,12 @@ class Worksheet extends WriterPart
     }
 
     /**
-     * Write ProtectedRanges
+     * Write ProtectedRanges.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter            $objWriter        XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet                    $pSheet            Worksheet
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
      */
-    private function writeProtectedRanges(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null)
+    private function writeProtectedRanges(XMLWriter $objWriter, PhpspreadsheetWorksheet $pSheet)
     {
         if (count($pSheet->getProtectedCells()) > 0) {
             // protectedRanges
@@ -670,13 +653,12 @@ class Worksheet extends WriterPart
     }
 
     /**
-     * Write MergeCells
+     * Write MergeCells.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter            $objWriter        XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet                    $pSheet            Worksheet
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
      */
-    private function writeMergeCells(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null)
+    private function writeMergeCells(XMLWriter $objWriter, PhpspreadsheetWorksheet $pSheet)
     {
         if (count($pSheet->getMergeCells()) > 0) {
             // mergeCells
@@ -695,13 +677,12 @@ class Worksheet extends WriterPart
     }
 
     /**
-     * Write PrintOptions
+     * Write PrintOptions.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter            $objWriter        XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet                    $pSheet            Worksheet
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
      */
-    private function writePrintOptions(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null)
+    private function writePrintOptions(XMLWriter $objWriter, PhpspreadsheetWorksheet $pSheet)
     {
         // printOptions
         $objWriter->startElement('printOptions');
@@ -721,33 +702,31 @@ class Worksheet extends WriterPart
     }
 
     /**
-     * Write PageMargins
+     * Write PageMargins.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter                $objWriter        XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet                        $pSheet            Worksheet
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
      */
-    private function writePageMargins(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null)
+    private function writePageMargins(XMLWriter $objWriter, PhpspreadsheetWorksheet $pSheet)
     {
         // pageMargins
         $objWriter->startElement('pageMargins');
-        $objWriter->writeAttribute('left', \PhpOffice\PhpSpreadsheet\Shared\StringHelper::formatNumber($pSheet->getPageMargins()->getLeft()));
-        $objWriter->writeAttribute('right', \PhpOffice\PhpSpreadsheet\Shared\StringHelper::formatNumber($pSheet->getPageMargins()->getRight()));
-        $objWriter->writeAttribute('top', \PhpOffice\PhpSpreadsheet\Shared\StringHelper::formatNumber($pSheet->getPageMargins()->getTop()));
-        $objWriter->writeAttribute('bottom', \PhpOffice\PhpSpreadsheet\Shared\StringHelper::formatNumber($pSheet->getPageMargins()->getBottom()));
-        $objWriter->writeAttribute('header', \PhpOffice\PhpSpreadsheet\Shared\StringHelper::formatNumber($pSheet->getPageMargins()->getHeader()));
-        $objWriter->writeAttribute('footer', \PhpOffice\PhpSpreadsheet\Shared\StringHelper::formatNumber($pSheet->getPageMargins()->getFooter()));
+        $objWriter->writeAttribute('left', StringHelper::formatNumber($pSheet->getPageMargins()->getLeft()));
+        $objWriter->writeAttribute('right', StringHelper::formatNumber($pSheet->getPageMargins()->getRight()));
+        $objWriter->writeAttribute('top', StringHelper::formatNumber($pSheet->getPageMargins()->getTop()));
+        $objWriter->writeAttribute('bottom', StringHelper::formatNumber($pSheet->getPageMargins()->getBottom()));
+        $objWriter->writeAttribute('header', StringHelper::formatNumber($pSheet->getPageMargins()->getHeader()));
+        $objWriter->writeAttribute('footer', StringHelper::formatNumber($pSheet->getPageMargins()->getFooter()));
         $objWriter->endElement();
     }
 
     /**
-     * Write AutoFilter
+     * Write AutoFilter.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter                $objWriter        XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet                        $pSheet            Worksheet
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
      */
-    private function writeAutoFilter(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null)
+    private function writeAutoFilter(XMLWriter $objWriter, PhpspreadsheetWorksheet $pSheet)
     {
         $autoFilterRange = $pSheet->getAutoFilter()->getRange();
         if (!empty($autoFilterRange)) {
@@ -755,7 +734,7 @@ class Worksheet extends WriterPart
             $objWriter->startElement('autoFilter');
 
             // Strip any worksheet reference from the filter coordinates
-            $range = \PhpOffice\PhpSpreadsheet\Cell::splitRange($autoFilterRange);
+            $range = Coordinate::splitRange($autoFilterRange);
             $range = $range[0];
             //    Strip any worksheet ref
             if (strpos($range[0], '!') !== false) {
@@ -766,7 +745,7 @@ class Worksheet extends WriterPart
             $objWriter->writeAttribute('ref', str_replace('$', '', $range));
 
             $columns = $pSheet->getAutoFilter()->getColumns();
-            if (count($columns > 0)) {
+            if (count($columns) > 0) {
                 foreach ($columns as $columnID => $column) {
                     $rules = $column->getRules();
                     if (count($rules) > 0) {
@@ -774,17 +753,17 @@ class Worksheet extends WriterPart
                         $objWriter->writeAttribute('colId', $pSheet->getAutoFilter()->getColumnOffset($columnID));
 
                         $objWriter->startElement($column->getFilterType());
-                        if ($column->getJoin() == \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column::AUTOFILTER_COLUMN_JOIN_AND) {
+                        if ($column->getJoin() == Column::AUTOFILTER_COLUMN_JOIN_AND) {
                             $objWriter->writeAttribute('and', 1);
                         }
 
                         foreach ($rules as $rule) {
-                            if (($column->getFilterType() === \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column::AUTOFILTER_FILTERTYPE_FILTER) &&
-                                ($rule->getOperator() === \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_COLUMN_RULE_EQUAL) &&
+                            if (($column->getFilterType() === Column::AUTOFILTER_FILTERTYPE_FILTER) &&
+                                ($rule->getOperator() === Rule::AUTOFILTER_COLUMN_RULE_EQUAL) &&
                                 ($rule->getValue() === '')) {
                                 //    Filter rule for Blanks
                                 $objWriter->writeAttribute('blank', 1);
-                            } elseif ($rule->getRuleType() === \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_RULETYPE_DYNAMICFILTER) {
+                            } elseif ($rule->getRuleType() === Rule::AUTOFILTER_RULETYPE_DYNAMICFILTER) {
                                 //    Dynamic Filter Rule
                                 $objWriter->writeAttribute('type', $rule->getGrouping());
                                 $val = $column->getAttribute('val');
@@ -795,19 +774,19 @@ class Worksheet extends WriterPart
                                 if ($maxVal !== null) {
                                     $objWriter->writeAttribute('maxVal', $maxVal);
                                 }
-                            } elseif ($rule->getRuleType() === \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_RULETYPE_TOPTENFILTER) {
+                            } elseif ($rule->getRuleType() === Rule::AUTOFILTER_RULETYPE_TOPTENFILTER) {
                                 //    Top 10 Filter Rule
                                 $objWriter->writeAttribute('val', $rule->getValue());
-                                $objWriter->writeAttribute('percent', (($rule->getOperator() === \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_COLUMN_RULE_TOPTEN_PERCENT) ? '1' : '0'));
-                                $objWriter->writeAttribute('top', (($rule->getGrouping() === \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_COLUMN_RULE_TOPTEN_TOP) ? '1' : '0'));
+                                $objWriter->writeAttribute('percent', (($rule->getOperator() === Rule::AUTOFILTER_COLUMN_RULE_TOPTEN_PERCENT) ? '1' : '0'));
+                                $objWriter->writeAttribute('top', (($rule->getGrouping() === Rule::AUTOFILTER_COLUMN_RULE_TOPTEN_TOP) ? '1' : '0'));
                             } else {
                                 //    Filter, DateGroupItem or CustomFilter
                                 $objWriter->startElement($rule->getRuleType());
 
-                                if ($rule->getOperator() !== \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_COLUMN_RULE_EQUAL) {
+                                if ($rule->getOperator() !== Rule::AUTOFILTER_COLUMN_RULE_EQUAL) {
                                     $objWriter->writeAttribute('operator', $rule->getOperator());
                                 }
-                                if ($rule->getRuleType() === \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_RULETYPE_DATEGROUP) {
+                                if ($rule->getRuleType() === Rule::AUTOFILTER_RULETYPE_DATEGROUP) {
                                     // Date Group filters
                                     foreach ($rule->getValue() as $key => $value) {
                                         if ($value > '') {
@@ -834,33 +813,32 @@ class Worksheet extends WriterPart
     }
 
     /**
-     * Write PageSetup
+     * Write PageSetup.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter            $objWriter        XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet                    $pSheet            Worksheet
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
      */
-    private function writePageSetup(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null)
+    private function writePageSetup(XMLWriter $objWriter, PhpspreadsheetWorksheet $pSheet)
     {
         // pageSetup
         $objWriter->startElement('pageSetup');
         $objWriter->writeAttribute('paperSize', $pSheet->getPageSetup()->getPaperSize());
         $objWriter->writeAttribute('orientation', $pSheet->getPageSetup()->getOrientation());
 
-        if (!is_null($pSheet->getPageSetup()->getScale())) {
+        if ($pSheet->getPageSetup()->getScale() !== null) {
             $objWriter->writeAttribute('scale', $pSheet->getPageSetup()->getScale());
         }
-        if (!is_null($pSheet->getPageSetup()->getFitToHeight())) {
+        if ($pSheet->getPageSetup()->getFitToHeight() !== null) {
             $objWriter->writeAttribute('fitToHeight', $pSheet->getPageSetup()->getFitToHeight());
         } else {
             $objWriter->writeAttribute('fitToHeight', '0');
         }
-        if (!is_null($pSheet->getPageSetup()->getFitToWidth())) {
+        if ($pSheet->getPageSetup()->getFitToWidth() !== null) {
             $objWriter->writeAttribute('fitToWidth', $pSheet->getPageSetup()->getFitToWidth());
         } else {
             $objWriter->writeAttribute('fitToWidth', '0');
         }
-        if (!is_null($pSheet->getPageSetup()->getFirstPageNumber())) {
+        if ($pSheet->getPageSetup()->getFirstPageNumber() !== null) {
             $objWriter->writeAttribute('firstPageNumber', $pSheet->getPageSetup()->getFirstPageNumber());
             $objWriter->writeAttribute('useFirstPageNumber', '1');
         }
@@ -869,13 +847,12 @@ class Worksheet extends WriterPart
     }
 
     /**
-     * Write Header / Footer
+     * Write Header / Footer.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter        $objWriter        XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet                $pSheet            Worksheet
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
      */
-    private function writeHeaderFooter(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null)
+    private function writeHeaderFooter(XMLWriter $objWriter, PhpspreadsheetWorksheet $pSheet)
     {
         // headerFooter
         $objWriter->startElement('headerFooter');
@@ -894,21 +871,20 @@ class Worksheet extends WriterPart
     }
 
     /**
-     * Write Breaks
+     * Write Breaks.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter        $objWriter        XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet                $pSheet            Worksheet
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
      */
-    private function writeBreaks(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null)
+    private function writeBreaks(XMLWriter $objWriter, PhpspreadsheetWorksheet $pSheet)
     {
         // Get row and column breaks
         $aRowBreaks = [];
         $aColumnBreaks = [];
         foreach ($pSheet->getBreaks() as $cell => $breakType) {
-            if ($breakType == \PhpOffice\PhpSpreadsheet\Worksheet::BREAK_ROW) {
+            if ($breakType == PhpspreadsheetWorksheet::BREAK_ROW) {
                 $aRowBreaks[] = $cell;
-            } elseif ($breakType == \PhpOffice\PhpSpreadsheet\Worksheet::BREAK_COLUMN) {
+            } elseif ($breakType == PhpspreadsheetWorksheet::BREAK_COLUMN) {
                 $aColumnBreaks[] = $cell;
             }
         }
@@ -920,7 +896,7 @@ class Worksheet extends WriterPart
             $objWriter->writeAttribute('manualBreakCount', count($aRowBreaks));
 
             foreach ($aRowBreaks as $cell) {
-                $coords = \PhpOffice\PhpSpreadsheet\Cell::coordinateFromString($cell);
+                $coords = Coordinate::coordinateFromString($cell);
 
                 $objWriter->startElement('brk');
                 $objWriter->writeAttribute('id', $coords[1]);
@@ -938,10 +914,10 @@ class Worksheet extends WriterPart
             $objWriter->writeAttribute('manualBreakCount', count($aColumnBreaks));
 
             foreach ($aColumnBreaks as $cell) {
-                $coords = \PhpOffice\PhpSpreadsheet\Cell::coordinateFromString($cell);
+                $coords = Coordinate::coordinateFromString($cell);
 
                 $objWriter->startElement('brk');
-                $objWriter->writeAttribute('id', \PhpOffice\PhpSpreadsheet\Cell::columnIndexFromString($coords[0]) - 1);
+                $objWriter->writeAttribute('id', Coordinate::columnIndexFromString($coords[0]) - 1);
                 $objWriter->writeAttribute('man', '1');
                 $objWriter->endElement();
             }
@@ -951,223 +927,220 @@ class Worksheet extends WriterPart
     }
 
     /**
-     * Write SheetData
+     * Write SheetData.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter        $objWriter        XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet                $pSheet            Worksheet
-     * @param    string[]                        $pStringTable    String table
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
+     * @param string[] $pStringTable String table
+     *
+     * @throws WriterException
      */
-    private function writeSheetData(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null, $pStringTable = null)
+    private function writeSheetData(XMLWriter $objWriter, PhpspreadsheetWorksheet $pSheet, array $pStringTable)
     {
-        if (is_array($pStringTable)) {
-            // Flipped stringtable, for faster index searching
-            $aFlippedStringTable = $this->getParentWriter()->getWriterPart('stringtable')->flipStringTable($pStringTable);
+        // Flipped stringtable, for faster index searching
+        $aFlippedStringTable = $this->getParentWriter()->getWriterPart('stringtable')->flipStringTable($pStringTable);
 
-            // sheetData
-            $objWriter->startElement('sheetData');
+        // sheetData
+        $objWriter->startElement('sheetData');
 
-            // Get column count
-            $colCount = \PhpOffice\PhpSpreadsheet\Cell::columnIndexFromString($pSheet->getHighestColumn());
+        // Get column count
+        $colCount = Coordinate::columnIndexFromString($pSheet->getHighestColumn());
 
-            // Highest row number
-            $highestRow = $pSheet->getHighestRow();
+        // Highest row number
+        $highestRow = $pSheet->getHighestRow();
 
-            // Loop through cells
-            $cellsByRow = [];
-            foreach ($pSheet->getCellCollection() as $cellID) {
-                $cellAddress = \PhpOffice\PhpSpreadsheet\Cell::coordinateFromString($cellID);
-                $cellsByRow[$cellAddress[1]][] = $cellID;
-            }
-
-            $currentRow = 0;
-            while ($currentRow++ < $highestRow) {
-                // Get row dimension
-                $rowDimension = $pSheet->getRowDimension($currentRow);
-
-                // Write current row?
-                $writeCurrentRow = isset($cellsByRow[$currentRow]) || $rowDimension->getRowHeight() >= 0 || $rowDimension->getVisible() == false || $rowDimension->getCollapsed() == true || $rowDimension->getOutlineLevel() > 0 || $rowDimension->getXfIndex() !== null;
-
-                if ($writeCurrentRow) {
-                    // Start a new row
-                    $objWriter->startElement('row');
-                    $objWriter->writeAttribute('r', $currentRow);
-                    $objWriter->writeAttribute('spans', '1:' . $colCount);
-
-                    // Row dimensions
-                    if ($rowDimension->getRowHeight() >= 0) {
-                        $objWriter->writeAttribute('customHeight', '1');
-                        $objWriter->writeAttribute('ht', \PhpOffice\PhpSpreadsheet\Shared\StringHelper::formatNumber($rowDimension->getRowHeight()));
-                    }
-
-                    // Row visibility
-                    if ($rowDimension->getVisible() == false) {
-                        $objWriter->writeAttribute('hidden', 'true');
-                    }
-
-                    // Collapsed
-                    if ($rowDimension->getCollapsed() == true) {
-                        $objWriter->writeAttribute('collapsed', 'true');
-                    }
-
-                    // Outline level
-                    if ($rowDimension->getOutlineLevel() > 0) {
-                        $objWriter->writeAttribute('outlineLevel', $rowDimension->getOutlineLevel());
-                    }
-
-                    // Style
-                    if ($rowDimension->getXfIndex() !== null) {
-                        $objWriter->writeAttribute('s', $rowDimension->getXfIndex());
-                        $objWriter->writeAttribute('customFormat', '1');
-                    }
-
-                    // Write cells
-                    if (isset($cellsByRow[$currentRow])) {
-                        foreach ($cellsByRow[$currentRow] as $cellAddress) {
-                            // Write cell
-                            $this->writeCell($objWriter, $pSheet, $cellAddress, $pStringTable, $aFlippedStringTable);
-                        }
-                    }
-
-                    // End row
-                    $objWriter->endElement();
-                }
-            }
-
-            $objWriter->endElement();
-        } else {
-            throw new \PhpOffice\PhpSpreadsheet\Writer\Exception('Invalid parameters passed.');
+        // Loop through cells
+        $cellsByRow = [];
+        foreach ($pSheet->getCoordinates() as $coordinate) {
+            $cellAddress = Coordinate::coordinateFromString($coordinate);
+            $cellsByRow[$cellAddress[1]][] = $coordinate;
         }
+
+        $currentRow = 0;
+        while ($currentRow++ < $highestRow) {
+            // Get row dimension
+            $rowDimension = $pSheet->getRowDimension($currentRow);
+
+            // Write current row?
+            $writeCurrentRow = isset($cellsByRow[$currentRow]) || $rowDimension->getRowHeight() >= 0 || $rowDimension->getVisible() == false || $rowDimension->getCollapsed() == true || $rowDimension->getOutlineLevel() > 0 || $rowDimension->getXfIndex() !== null;
+
+            if ($writeCurrentRow) {
+                // Start a new row
+                $objWriter->startElement('row');
+                $objWriter->writeAttribute('r', $currentRow);
+                $objWriter->writeAttribute('spans', '1:' . $colCount);
+
+                // Row dimensions
+                if ($rowDimension->getRowHeight() >= 0) {
+                    $objWriter->writeAttribute('customHeight', '1');
+                    $objWriter->writeAttribute('ht', StringHelper::formatNumber($rowDimension->getRowHeight()));
+                }
+
+                // Row visibility
+                if ($rowDimension->getVisible() == false) {
+                    $objWriter->writeAttribute('hidden', 'true');
+                }
+
+                // Collapsed
+                if ($rowDimension->getCollapsed() == true) {
+                    $objWriter->writeAttribute('collapsed', 'true');
+                }
+
+                // Outline level
+                if ($rowDimension->getOutlineLevel() > 0) {
+                    $objWriter->writeAttribute('outlineLevel', $rowDimension->getOutlineLevel());
+                }
+
+                // Style
+                if ($rowDimension->getXfIndex() !== null) {
+                    $objWriter->writeAttribute('s', $rowDimension->getXfIndex());
+                    $objWriter->writeAttribute('customFormat', '1');
+                }
+
+                // Write cells
+                if (isset($cellsByRow[$currentRow])) {
+                    foreach ($cellsByRow[$currentRow] as $cellAddress) {
+                        // Write cell
+                        $this->writeCell($objWriter, $pSheet, $cellAddress, $aFlippedStringTable);
+                    }
+                }
+
+                // End row
+                $objWriter->endElement();
+            }
+        }
+
+        $objWriter->endElement();
     }
 
     /**
-     * Write Cell
+     * Write Cell.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter    $objWriter                XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet            $pSheet                    Worksheet
-     * @param    \PhpOffice\PhpSpreadsheet\Cell                $pCellAddress            Cell Address
-     * @param    string[]                    $pStringTable            String table
-     * @param    string[]                    $pFlippedStringTable    String table (flipped), for faster index searching
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
+     * @param Cell $pCellAddress Cell Address
+     * @param string[] $pFlippedStringTable String table (flipped), for faster index searching
+     *
+     * @throws WriterException
      */
-    private function writeCell(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null, $pCellAddress = null, $pStringTable = null, $pFlippedStringTable = null)
+    private function writeCell(XMLWriter $objWriter, PhpspreadsheetWorksheet $pSheet, $pCellAddress, array $pFlippedStringTable)
     {
-        if (is_array($pStringTable) && is_array($pFlippedStringTable)) {
-            // Cell
-            $pCell = $pSheet->getCell($pCellAddress);
-            $objWriter->startElement('c');
-            $objWriter->writeAttribute('r', $pCellAddress);
+        // Cell
+        $pCell = $pSheet->getCell($pCellAddress);
+        $objWriter->startElement('c');
+        $objWriter->writeAttribute('r', $pCellAddress);
 
-            // Sheet styles
-            if ($pCell->getXfIndex() != '') {
-                $objWriter->writeAttribute('s', $pCell->getXfIndex());
+        // Sheet styles
+        if ($pCell->getXfIndex() != '') {
+            $objWriter->writeAttribute('s', $pCell->getXfIndex());
+        }
+
+        // If cell value is supplied, write cell value
+        $cellValue = $pCell->getValue();
+        if (is_object($cellValue) || $cellValue !== '') {
+            // Map type
+            $mappedType = $pCell->getDataType();
+
+            // Write data type depending on its type
+            switch (strtolower($mappedType)) {
+                case 'inlinestr':    // Inline string
+                case 's':            // String
+                case 'b':            // Boolean
+                    $objWriter->writeAttribute('t', $mappedType);
+
+                    break;
+                case 'f':            // Formula
+                    $calculatedValue = ($this->getParentWriter()->getPreCalculateFormulas()) ?
+                        $pCell->getCalculatedValue() : $cellValue;
+                    if (is_string($calculatedValue)) {
+                        $objWriter->writeAttribute('t', 'str');
+                    }
+
+                    break;
+                case 'e':            // Error
+                    $objWriter->writeAttribute('t', $mappedType);
             }
 
-            // If cell value is supplied, write cell value
-            $cellValue = $pCell->getValue();
-            if (is_object($cellValue) || $cellValue !== '') {
-                // Map type
-                $mappedType = $pCell->getDataType();
+            // Write data depending on its type
+            switch (strtolower($mappedType)) {
+                case 'inlinestr':    // Inline string
+                    if (!$cellValue instanceof RichText) {
+                        $objWriter->writeElement('t', StringHelper::controlCharacterPHP2OOXML(htmlspecialchars($cellValue)));
+                    } elseif ($cellValue instanceof RichText) {
+                        $objWriter->startElement('is');
+                        $this->getParentWriter()->getWriterPart('stringtable')->writeRichText($objWriter, $cellValue);
+                        $objWriter->endElement();
+                    }
 
-                // Write data type depending on its type
-                switch (strtolower($mappedType)) {
-                    case 'inlinestr':    // Inline string
-                    case 's':            // String
-                    case 'b':            // Boolean
-                        $objWriter->writeAttribute('t', $mappedType);
-                        break;
-                    case 'f':            // Formula
-                        $calculatedValue = ($this->getParentWriter()->getPreCalculateFormulas()) ?
-                            $pCell->getCalculatedValue() : $cellValue;
-                        if (is_string($calculatedValue)) {
-                            $objWriter->writeAttribute('t', 'str');
+                    break;
+                case 's':            // String
+                    if (!$cellValue instanceof RichText) {
+                        if (isset($pFlippedStringTable[$cellValue])) {
+                            $objWriter->writeElement('v', $pFlippedStringTable[$cellValue]);
                         }
-                        break;
-                    case 'e':            // Error
-                        $objWriter->writeAttribute('t', $mappedType);
-                }
+                    } elseif ($cellValue instanceof RichText) {
+                        $objWriter->writeElement('v', $pFlippedStringTable[$cellValue->getHashCode()]);
+                    }
 
-                // Write data depending on its type
-                switch (strtolower($mappedType)) {
-                    case 'inlinestr':    // Inline string
-                        if (!$cellValue instanceof \PhpOffice\PhpSpreadsheet\RichText) {
-                            $objWriter->writeElement('t', \PhpOffice\PhpSpreadsheet\Shared\StringHelper::controlCharacterPHP2OOXML(htmlspecialchars($cellValue)));
-                        } elseif ($cellValue instanceof \PhpOffice\PhpSpreadsheet\RichText) {
-                            $objWriter->startElement('is');
-                            $this->getParentWriter()->getWriterPart('stringtable')->writeRichText($objWriter, $cellValue);
-                            $objWriter->endElement();
-                        }
-
-                        break;
-                    case 's':            // String
-                        if (!$cellValue instanceof \PhpOffice\PhpSpreadsheet\RichText) {
-                            if (isset($pFlippedStringTable[$cellValue])) {
-                                $objWriter->writeElement('v', $pFlippedStringTable[$cellValue]);
-                            }
-                        } elseif ($cellValue instanceof \PhpOffice\PhpSpreadsheet\RichText) {
-                            $objWriter->writeElement('v', $pFlippedStringTable[$cellValue->getHashCode()]);
-                        }
-
-                        break;
-                    case 'f':            // Formula
-                        $attributes = $pCell->getFormulaAttributes();
-                        if ($attributes['t'] == 'array') {
-                            $objWriter->startElement('f');
-                            $objWriter->writeAttribute('t', 'array');
-                            $objWriter->writeAttribute('ref', $pCellAddress);
-                            $objWriter->writeAttribute('aca', '1');
-                            $objWriter->writeAttribute('ca', '1');
-                            $objWriter->text(substr($cellValue, 1));
-                            $objWriter->endElement();
-                        } else {
-                            $objWriter->writeElement('f', substr($cellValue, 1));
-                        }
-                        if ($this->getParentWriter()->getOffice2003Compatibility() === false) {
-                            if ($this->getParentWriter()->getPreCalculateFormulas()) {
-                                if (!is_array($calculatedValue) && substr($calculatedValue, 0, 1) != '#') {
-                                    $objWriter->writeElement('v', \PhpOffice\PhpSpreadsheet\Shared\StringHelper::formatNumber($calculatedValue));
-                                } else {
-                                    $objWriter->writeElement('v', '0');
-                                }
+                    break;
+                case 'f':            // Formula
+                    $attributes = $pCell->getFormulaAttributes();
+                    if ($attributes['t'] == 'array') {
+                        $objWriter->startElement('f');
+                        $objWriter->writeAttribute('t', 'array');
+                        $objWriter->writeAttribute('ref', $pCellAddress);
+                        $objWriter->writeAttribute('aca', '1');
+                        $objWriter->writeAttribute('ca', '1');
+                        $objWriter->text(substr($cellValue, 1));
+                        $objWriter->endElement();
+                    } else {
+                        $objWriter->writeElement('f', substr($cellValue, 1));
+                    }
+                    if ($this->getParentWriter()->getOffice2003Compatibility() === false) {
+                        if ($this->getParentWriter()->getPreCalculateFormulas()) {
+                            if (!is_array($calculatedValue) && substr($calculatedValue, 0, 1) != '#') {
+                                $objWriter->writeElement('v', StringHelper::formatNumber($calculatedValue));
                             } else {
                                 $objWriter->writeElement('v', '0');
                             }
-                        }
-                        break;
-                    case 'n':            // Numeric
-                        // force point as decimal separator in case current locale uses comma
-                        $objWriter->writeElement('v', str_replace(',', '.', $cellValue));
-                        break;
-                    case 'b':            // Boolean
-                        $objWriter->writeElement('v', ($cellValue ? '1' : '0'));
-                        break;
-                    case 'e':            // Error
-                        if (substr($cellValue, 0, 1) == '=') {
-                            $objWriter->writeElement('f', substr($cellValue, 1));
-                            $objWriter->writeElement('v', substr($cellValue, 1));
                         } else {
-                            $objWriter->writeElement('v', $cellValue);
+                            $objWriter->writeElement('v', '0');
                         }
+                    }
 
-                        break;
-                }
+                    break;
+                case 'n':            // Numeric
+                    // force point as decimal separator in case current locale uses comma
+                    $objWriter->writeElement('v', str_replace(',', '.', $cellValue));
+
+                    break;
+                case 'b':            // Boolean
+                    $objWriter->writeElement('v', ($cellValue ? '1' : '0'));
+
+                    break;
+                case 'e':            // Error
+                    if (substr($cellValue, 0, 1) == '=') {
+                        $objWriter->writeElement('f', substr($cellValue, 1));
+                        $objWriter->writeElement('v', substr($cellValue, 1));
+                    } else {
+                        $objWriter->writeElement('v', $cellValue);
+                    }
+
+                    break;
             }
-
-            $objWriter->endElement();
-        } else {
-            throw new \PhpOffice\PhpSpreadsheet\Writer\Exception('Invalid parameters passed.');
         }
+
+        $objWriter->endElement();
     }
 
     /**
-     * Write Drawings
+     * Write Drawings.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter    $objWriter        XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet            $pSheet            Worksheet
-     * @param    bool                        $includeCharts    Flag indicating if we should include drawing details for charts
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
+     * @param bool $includeCharts Flag indicating if we should include drawing details for charts
      */
-    private function writeDrawings(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null, $includeCharts = false)
+    private function writeDrawings(XMLWriter $objWriter = null, PhpspreadsheetWorksheet $pSheet = null, $includeCharts = false)
     {
         $chartCount = ($includeCharts) ? $pSheet->getChartCollection()->count() : 0;
         // If sheet contains drawings, add the relationships
@@ -1180,13 +1153,12 @@ class Worksheet extends WriterPart
     }
 
     /**
-     * Write LegacyDrawing
+     * Write LegacyDrawing.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter        $objWriter        XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet                $pSheet            Worksheet
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
      */
-    private function writeLegacyDrawing(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null)
+    private function writeLegacyDrawing(XMLWriter $objWriter, PhpspreadsheetWorksheet $pSheet)
     {
         // If sheet contains comments, add the relationships
         if (count($pSheet->getComments()) > 0) {
@@ -1197,13 +1169,12 @@ class Worksheet extends WriterPart
     }
 
     /**
-     * Write LegacyDrawingHF
+     * Write LegacyDrawingHF.
      *
-     * @param    \PhpOffice\PhpSpreadsheet\Shared\XMLWriter        $objWriter        XML Writer
-     * @param    \PhpOffice\PhpSpreadsheet\Worksheet                $pSheet            Worksheet
-     * @throws    \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param PhpspreadsheetWorksheet $pSheet Worksheet
      */
-    private function writeLegacyDrawingHF(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, \PhpOffice\PhpSpreadsheet\Worksheet $pSheet = null)
+    private function writeLegacyDrawingHF(XMLWriter $objWriter, PhpspreadsheetWorksheet $pSheet)
     {
         // If sheet contains images, add the relationships
         if (count($pSheet->getHeaderFooter()->getImages()) > 0) {

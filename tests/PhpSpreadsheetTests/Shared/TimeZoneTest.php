@@ -3,8 +3,9 @@
 namespace PhpOffice\PhpSpreadsheetTests\Shared;
 
 use PhpOffice\PhpSpreadsheet\Shared\TimeZone;
+use PHPUnit\Framework\TestCase;
 
-class TimeZoneTest extends \PHPUnit_Framework_TestCase
+class TimeZoneTest extends TestCase
 {
     public function testSetTimezone()
     {
@@ -18,7 +19,7 @@ class TimeZoneTest extends \PHPUnit_Framework_TestCase
 
         foreach ($timezoneValues as $timezoneValue) {
             $result = TimeZone::setTimezone($timezoneValue);
-            $this->assertTrue($result);
+            self::assertTrue($result);
         }
     }
 
@@ -26,6 +27,6 @@ class TimeZoneTest extends \PHPUnit_Framework_TestCase
     {
         $unsupportedTimezone = 'Etc/GMT+10';
         $result = TimeZone::setTimezone($unsupportedTimezone);
-        $this->assertFalse($result);
+        self::assertFalse($result);
     }
 }

@@ -2,11 +2,13 @@
 
 namespace PhpOffice\PhpSpreadsheetTests\Calculation;
 
+use PhpOffice\PhpSpreadsheet\Calculation\Calculation;
 use PhpOffice\PhpSpreadsheet\Calculation\Functions;
 use PhpOffice\PhpSpreadsheet\Calculation\TextData;
 use PhpOffice\PhpSpreadsheet\Shared\StringHelper;
+use PHPUnit\Framework\TestCase;
 
-class TextDataTest extends \PHPUnit_Framework_TestCase
+class TextDataTest extends TestCase
 {
     public function setUp()
     {
@@ -15,13 +17,13 @@ class TextDataTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerCHAR
+     *
+     * @param mixed $expectedResult
      */
-    public function testCHAR()
+    public function testCHAR($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([TextData::class, 'CHARACTER'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = TextData::CHARACTER(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerCHAR()
@@ -31,13 +33,13 @@ class TextDataTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerCODE
+     *
+     * @param mixed $expectedResult
      */
-    public function testCODE()
+    public function testCODE($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([TextData::class, 'ASCIICODE'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = TextData::ASCIICODE(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerCODE()
@@ -47,13 +49,13 @@ class TextDataTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerCONCATENATE
+     *
+     * @param mixed $expectedResult
      */
-    public function testCONCATENATE()
+    public function testCONCATENATE($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([TextData::class, 'CONCATENATE'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = TextData::CONCATENATE(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerCONCATENATE()
@@ -63,13 +65,13 @@ class TextDataTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerLEFT
+     *
+     * @param mixed $expectedResult
      */
-    public function testLEFT()
+    public function testLEFT($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([TextData::class, 'LEFT'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = TextData::LEFT(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerLEFT()
@@ -79,13 +81,13 @@ class TextDataTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerMID
+     *
+     * @param mixed $expectedResult
      */
-    public function testMID()
+    public function testMID($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([TextData::class, 'MID'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = TextData::MID(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerMID()
@@ -95,13 +97,13 @@ class TextDataTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerRIGHT
+     *
+     * @param mixed $expectedResult
      */
-    public function testRIGHT()
+    public function testRIGHT($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([TextData::class, 'RIGHT'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = TextData::RIGHT(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerRIGHT()
@@ -111,13 +113,13 @@ class TextDataTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerLOWER
+     *
+     * @param mixed $expectedResult
      */
-    public function testLOWER()
+    public function testLOWER($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([TextData::class, 'LOWERCASE'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = TextData::LOWERCASE(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerLOWER()
@@ -127,13 +129,13 @@ class TextDataTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerUPPER
+     *
+     * @param mixed $expectedResult
      */
-    public function testUPPER()
+    public function testUPPER($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([TextData::class, 'UPPERCASE'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = TextData::UPPERCASE(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerUPPER()
@@ -143,13 +145,13 @@ class TextDataTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerPROPER
+     *
+     * @param mixed $expectedResult
      */
-    public function testPROPER()
+    public function testPROPER($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([TextData::class, 'PROPERCASE'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = TextData::PROPERCASE(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerPROPER()
@@ -159,13 +161,13 @@ class TextDataTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerLEN
+     *
+     * @param mixed $expectedResult
      */
-    public function testLEN()
+    public function testLEN($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([TextData::class, 'STRINGLENGTH'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = TextData::STRINGLENGTH(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerLEN()
@@ -175,13 +177,13 @@ class TextDataTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerSEARCH
+     *
+     * @param mixed $expectedResult
      */
-    public function testSEARCH()
+    public function testSEARCH($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([TextData::class, 'SEARCHINSENSITIVE'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = TextData::SEARCHINSENSITIVE(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerSEARCH()
@@ -191,13 +193,13 @@ class TextDataTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerFIND
+     *
+     * @param mixed $expectedResult
      */
-    public function testFIND()
+    public function testFIND($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([TextData::class, 'SEARCHSENSITIVE'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = TextData::SEARCHSENSITIVE(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerFIND()
@@ -207,13 +209,13 @@ class TextDataTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerREPLACE
+     *
+     * @param mixed $expectedResult
      */
-    public function testREPLACE()
+    public function testREPLACE($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([TextData::class, 'REPLACE'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = TextData::REPLACE(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerREPLACE()
@@ -223,13 +225,13 @@ class TextDataTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerSUBSTITUTE
+     *
+     * @param mixed $expectedResult
      */
-    public function testSUBSTITUTE()
+    public function testSUBSTITUTE($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([TextData::class, 'SUBSTITUTE'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = TextData::SUBSTITUTE(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerSUBSTITUTE()
@@ -239,13 +241,13 @@ class TextDataTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerTRIM
+     *
+     * @param mixed $expectedResult
      */
-    public function testTRIM()
+    public function testTRIM($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([TextData::class, 'TRIMSPACES'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = TextData::TRIMSPACES(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerTRIM()
@@ -255,13 +257,13 @@ class TextDataTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerCLEAN
+     *
+     * @param mixed $expectedResult
      */
-    public function testCLEAN()
+    public function testCLEAN($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([TextData::class, 'TRIMNONPRINTABLE'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = TextData::TRIMNONPRINTABLE(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerCLEAN()
@@ -271,13 +273,13 @@ class TextDataTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerDOLLAR
+     *
+     * @param mixed $expectedResult
      */
-    public function testDOLLAR()
+    public function testDOLLAR($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([TextData::class, 'DOLLAR'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = TextData::DOLLAR(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerDOLLAR()
@@ -287,13 +289,13 @@ class TextDataTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerFIXED
+     *
+     * @param mixed $expectedResult
      */
-    public function testFIXED()
+    public function testFIXED($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([TextData::class, 'FIXEDFORMAT'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = TextData::FIXEDFORMAT(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerFIXED()
@@ -303,13 +305,13 @@ class TextDataTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerT
+     *
+     * @param mixed $expectedResult
      */
-    public function testT()
+    public function testT($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([TextData::class, 'RETURNSTRING'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = TextData::RETURNSTRING(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerT()
@@ -319,18 +321,18 @@ class TextDataTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerTEXT
+     *
+     * @param mixed $expectedResult
      */
-    public function testTEXT()
+    public function testTEXT($expectedResult, ...$args)
     {
         //    Enforce decimal and thousands separator values to UK/US, and currency code to USD
         StringHelper::setDecimalSeparator('.');
         StringHelper::setThousandsSeparator(',');
         StringHelper::setCurrencyCode('$');
 
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([TextData::class, 'TEXTFORMAT'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = TextData::TEXTFORMAT(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerTEXT()
@@ -340,17 +342,17 @@ class TextDataTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerVALUE
+     *
+     * @param mixed $expectedResult
      */
-    public function testVALUE()
+    public function testVALUE($expectedResult, ...$args)
     {
         StringHelper::setDecimalSeparator('.');
         StringHelper::setThousandsSeparator(' ');
         StringHelper::setCurrencyCode('$');
 
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([TextData::class, 'VALUE'], $args);
-        $this->assertEquals($expectedResult, $result, null, 1E-8);
+        $result = TextData::VALUE(...$args);
+        self::assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerVALUE()

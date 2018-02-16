@@ -2,45 +2,29 @@
 
 namespace PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-/**
- * Copyright (c) 2006 - 2016 PhpSpreadsheet
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * @category   PhpSpreadsheet
- * @copyright  Copyright (c) 2006 - 2016 PhpSpreadsheet (https://github.com/PHPOffice/PhpSpreadsheet)
- * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt    LGPL
- * @version    ##VERSION##, ##DATE##
- */
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Comment;
+use PhpOffice\PhpSpreadsheet\Shared\XMLWriter;
+
 class Comments extends WriterPart
 {
     /**
-     * Write comments to XML format
+     * Write comments to XML format.
      *
-     * @param     \PhpOffice\PhpSpreadsheet\Worksheet                $pWorksheet
-     * @throws     \PhpOffice\PhpSpreadsheet\Writer\Exception
-     * @return string                          XML Output
+     * @param \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $pWorksheet
+     *
+     * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
+     *
+     * @return string XML Output
      */
-    public function writeComments(\PhpOffice\PhpSpreadsheet\Worksheet $pWorksheet = null)
+    public function writeComments(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $pWorksheet)
     {
         // Create XML writer
         $objWriter = null;
         if ($this->getParentWriter()->getUseDiskCaching()) {
-            $objWriter = new \PhpOffice\PhpSpreadsheet\Shared\XMLWriter(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter::STORAGE_DISK, $this->getParentWriter()->getDiskCachingDirectory());
+            $objWriter = new XMLWriter(XMLWriter::STORAGE_DISK, $this->getParentWriter()->getDiskCachingDirectory());
         } else {
-            $objWriter = new \PhpOffice\PhpSpreadsheet\Shared\XMLWriter(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter::STORAGE_MEMORY);
+            $objWriter = new XMLWriter(XMLWriter::STORAGE_MEMORY);
         }
 
         // XML header
@@ -83,15 +67,16 @@ class Comments extends WriterPart
     }
 
     /**
-     * Write comment to XML format
+     * Write comment to XML format.
      *
-     * @param     \PhpOffice\PhpSpreadsheet\Shared\XMLWriter        $objWriter             XML Writer
-     * @param    string                            $pCellReference        Cell reference
-     * @param     \PhpOffice\PhpSpreadsheet\Comment                $pComment            Comment
-     * @param    array                            $pAuthors            Array of authors
-     * @throws     \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param string $pCellReference Cell reference
+     * @param Comment $pComment Comment
+     * @param array $pAuthors Array of authors
+     *
+     * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
      */
-    private function writeComment(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, $pCellReference = 'A1', \PhpOffice\PhpSpreadsheet\Comment $pComment = null, $pAuthors = null)
+    private function writeComment(XMLWriter $objWriter, $pCellReference, Comment $pComment, array $pAuthors)
     {
         // comment
         $objWriter->startElement('comment');
@@ -107,20 +92,22 @@ class Comments extends WriterPart
     }
 
     /**
-     * Write VML comments to XML format
+     * Write VML comments to XML format.
      *
-     * @param \PhpOffice\PhpSpreadsheet\Worksheet $pWorksheet
+     * @param \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $pWorksheet
+     *
      * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
+     *
      * @return string XML Output
      */
-    public function writeVMLComments(\PhpOffice\PhpSpreadsheet\Worksheet $pWorksheet = null)
+    public function writeVMLComments(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $pWorksheet)
     {
         // Create XML writer
         $objWriter = null;
         if ($this->getParentWriter()->getUseDiskCaching()) {
-            $objWriter = new \PhpOffice\PhpSpreadsheet\Shared\XMLWriter(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter::STORAGE_DISK, $this->getParentWriter()->getDiskCachingDirectory());
+            $objWriter = new XMLWriter(XMLWriter::STORAGE_DISK, $this->getParentWriter()->getDiskCachingDirectory());
         } else {
-            $objWriter = new \PhpOffice\PhpSpreadsheet\Shared\XMLWriter(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter::STORAGE_MEMORY);
+            $objWriter = new XMLWriter(XMLWriter::STORAGE_MEMORY);
         }
 
         // XML header
@@ -139,8 +126,8 @@ class Comments extends WriterPart
         $objWriter->startElement('o:shapelayout');
         $objWriter->writeAttribute('v:ext', 'edit');
 
-            // o:idmap
-            $objWriter->startElement('o:idmap');
+        // o:idmap
+        $objWriter->startElement('o:idmap');
         $objWriter->writeAttribute('v:ext', 'edit');
         $objWriter->writeAttribute('data', '1');
         $objWriter->endElement();
@@ -154,13 +141,13 @@ class Comments extends WriterPart
         $objWriter->writeAttribute('o:spt', '202');
         $objWriter->writeAttribute('path', 'm,l,21600r21600,l21600,xe');
 
-            // v:stroke
-            $objWriter->startElement('v:stroke');
+        // v:stroke
+        $objWriter->startElement('v:stroke');
         $objWriter->writeAttribute('joinstyle', 'miter');
         $objWriter->endElement();
 
-            // v:path
-            $objWriter->startElement('v:path');
+        // v:path
+        $objWriter->startElement('v:path');
         $objWriter->writeAttribute('gradientshapeok', 't');
         $objWriter->writeAttribute('o:connecttype', 'rect');
         $objWriter->endElement();
@@ -179,18 +166,17 @@ class Comments extends WriterPart
     }
 
     /**
-     * Write VML comment to XML format
+     * Write VML comment to XML format.
      *
-     * @param     \PhpOffice\PhpSpreadsheet\Shared\XMLWriter        $objWriter             XML Writer
-     * @param    string                            $pCellReference        Cell reference
-     * @param     \PhpOffice\PhpSpreadsheet\Comment                $pComment            Comment
-     * @throws     \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param string $pCellReference Cell reference, eg: 'A1'
+     * @param Comment $pComment Comment
      */
-    private function writeVMLComment(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, $pCellReference = 'A1', \PhpOffice\PhpSpreadsheet\Comment $pComment = null)
+    private function writeVMLComment(XMLWriter $objWriter, $pCellReference, Comment $pComment)
     {
         // Metadata
-        list($column, $row) = \PhpOffice\PhpSpreadsheet\Cell::coordinateFromString($pCellReference);
-        $column = \PhpOffice\PhpSpreadsheet\Cell::columnIndexFromString($column);
+        list($column, $row) = Coordinate::coordinateFromString($pCellReference);
+        $column = Coordinate::columnIndexFromString($column);
         $id = 1024 + $column + $row;
         $id = substr($id, 0, 4);
 
@@ -202,52 +188,52 @@ class Comments extends WriterPart
         $objWriter->writeAttribute('fillcolor', '#' . $pComment->getFillColor()->getRGB());
         $objWriter->writeAttribute('o:insetmode', 'auto');
 
-            // v:fill
-            $objWriter->startElement('v:fill');
+        // v:fill
+        $objWriter->startElement('v:fill');
         $objWriter->writeAttribute('color2', '#' . $pComment->getFillColor()->getRGB());
         $objWriter->endElement();
 
-            // v:shadow
-            $objWriter->startElement('v:shadow');
+        // v:shadow
+        $objWriter->startElement('v:shadow');
         $objWriter->writeAttribute('on', 't');
         $objWriter->writeAttribute('color', 'black');
         $objWriter->writeAttribute('obscured', 't');
         $objWriter->endElement();
 
-            // v:path
-            $objWriter->startElement('v:path');
+        // v:path
+        $objWriter->startElement('v:path');
         $objWriter->writeAttribute('o:connecttype', 'none');
         $objWriter->endElement();
 
-            // v:textbox
-            $objWriter->startElement('v:textbox');
+        // v:textbox
+        $objWriter->startElement('v:textbox');
         $objWriter->writeAttribute('style', 'mso-direction-alt:auto');
 
-                // div
-                $objWriter->startElement('div');
+        // div
+        $objWriter->startElement('div');
         $objWriter->writeAttribute('style', 'text-align:left');
         $objWriter->endElement();
 
         $objWriter->endElement();
 
-            // x:ClientData
-            $objWriter->startElement('x:ClientData');
+        // x:ClientData
+        $objWriter->startElement('x:ClientData');
         $objWriter->writeAttribute('ObjectType', 'Note');
 
-                // x:MoveWithCells
-                $objWriter->writeElement('x:MoveWithCells', '');
+        // x:MoveWithCells
+        $objWriter->writeElement('x:MoveWithCells', '');
 
-                // x:SizeWithCells
-                $objWriter->writeElement('x:SizeWithCells', '');
+        // x:SizeWithCells
+        $objWriter->writeElement('x:SizeWithCells', '');
 
-                // x:AutoFill
-                $objWriter->writeElement('x:AutoFill', 'False');
+        // x:AutoFill
+        $objWriter->writeElement('x:AutoFill', 'False');
 
-                // x:Row
-                $objWriter->writeElement('x:Row', ($row - 1));
+        // x:Row
+        $objWriter->writeElement('x:Row', ($row - 1));
 
-                // x:Column
-                $objWriter->writeElement('x:Column', ($column - 1));
+        // x:Column
+        $objWriter->writeElement('x:Column', ($column - 1));
 
         $objWriter->endElement();
 

@@ -2,42 +2,17 @@
 
 namespace PhpOffice\PhpSpreadsheet\Calculation;
 
-/* LOG_GAMMA_X_MAX_VALUE */
-define('LOG_GAMMA_X_MAX_VALUE', 2.55e305);
+use PhpOffice\PhpSpreadsheet\Shared\Trend\Trend;
 
-/* XMININ */
-define('XMININ', 2.23e-308);
-
-/* EPS */
-define('EPS', 2.22e-16);
-
-/* SQRT2PI */
-define('SQRT2PI', 2.5066282746310005024157652848110452530069867406099);
-
-/**
- * Copyright (c) 2006 - 2016 PhpSpreadsheet
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
- *
- * @category    PhpSpreadsheet
- * @copyright   Copyright (c) 2006 - 2016 PhpSpreadsheet (https://github.com/PHPOffice/PhpSpreadsheet)
- * @license     http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt    LGPL
- * @version     ##VERSION##, ##DATE##
- */
 class Statistical
 {
+    const LOG_GAMMA_X_MAX_VALUE = 2.55e305;
+    const XMININ = 2.23e-308;
+    const EPS = 2.22e-16;
+    const MAX_VALUE = 1.2e308;
+    const MAX_ITERATIONS = 256;
+    const SQRT2PI = 2.5066282746310005024157652848110452530069867406099;
+
     private static function checkTrendArrays(&$array1, &$array2)
     {
         if (!is_array($array1)) {
@@ -50,15 +25,13 @@ class Statistical
         $array1 = Functions::flattenArray($array1);
         $array2 = Functions::flattenArray($array2);
         foreach ($array1 as $key => $value) {
-            if ((is_bool($value)) || (is_string($value)) || (is_null($value))) {
-                unset($array1[$key]);
-                unset($array2[$key]);
+            if ((is_bool($value)) || (is_string($value)) || ($value === null)) {
+                unset($array1[$key], $array2[$key]);
             }
         }
         foreach ($array2 as $key => $value) {
-            if ((is_bool($value)) || (is_string($value)) || (is_null($value))) {
-                unset($array1[$key]);
-                unset($array2[$key]);
+            if ((is_bool($value)) || (is_string($value)) || ($value === null)) {
+                unset($array1[$key], $array2[$key]);
             }
         }
         $array1 = array_merge($array1);
@@ -68,34 +41,18 @@ class Statistical
     }
 
     /**
-     * Beta function.
-     *
-     * @author Jaco van Kooten
-     *
-     * @param p require p>0
-     * @param q require q>0
-     * @return 0 if p<=0, q<=0 or p+q>2.55E305 to avoid errors and over/underflow
-     */
-    private static function beta($p, $q)
-    {
-        if ($p <= 0.0 || $q <= 0.0 || ($p + $q) > LOG_GAMMA_X_MAX_VALUE) {
-            return 0.0;
-        } else {
-            return exp(self::logBeta($p, $q));
-        }
-    }
-
-    /**
-     * Incomplete beta function
+     * Incomplete beta function.
      *
      * @author Jaco van Kooten
      * @author Paul Meagher
      *
      * The computation is based on formulas from Numerical Recipes, Chapter 6.4 (W.H. Press et al, 1992).
-     * @param x require 0<=x<=1
-     * @param p require p>0
-     * @param q require q>0
-     * @return 0 if x<0, p<=0, q<=0 or p+q>2.55E305 and 1 if x>1 to avoid errors and over/underflow
+     *
+     * @param mixed $x require 0<=x<=1
+     * @param mixed $p require p>0
+     * @param mixed $q require q>0
+     *
+     * @return float 0 if x<0, p<=0, q<=0 or p+q>2.55E305 and 1 if x>1 to avoid errors and over/underflow
      */
     private static function incompleteBeta($x, $p, $q)
     {
@@ -103,28 +60,32 @@ class Statistical
             return 0.0;
         } elseif ($x >= 1.0) {
             return 1.0;
-        } elseif (($p <= 0.0) || ($q <= 0.0) || (($p + $q) > LOG_GAMMA_X_MAX_VALUE)) {
+        } elseif (($p <= 0.0) || ($q <= 0.0) || (($p + $q) > self::LOG_GAMMA_X_MAX_VALUE)) {
             return 0.0;
         }
         $beta_gam = exp((0 - self::logBeta($p, $q)) + $p * log($x) + $q * log(1.0 - $x));
         if ($x < ($p + 1.0) / ($p + $q + 2.0)) {
             return $beta_gam * self::betaFraction($x, $p, $q) / $p;
-        } else {
-            return 1.0 - ($beta_gam * self::betaFraction(1 - $x, $q, $p) / $q);
         }
+
+        return 1.0 - ($beta_gam * self::betaFraction(1 - $x, $q, $p) / $q);
     }
 
     // Function cache for logBeta function
     private static $logBetaCacheP = 0.0;
+
     private static $logBetaCacheQ = 0.0;
+
     private static $logBetaCacheResult = 0.0;
 
     /**
      * The natural logarithm of the beta function.
      *
-     * @param p require p>0
-     * @param q require q>0
-     * @return 0 if p<=0, q<=0 or p+q>2.55E305 to avoid errors and over/underflow
+     * @param mixed $p require p>0
+     * @param mixed $q require q>0
+     *
+     * @return float 0 if p<=0, q<=0 or p+q>2.55E305 to avoid errors and over/underflow
+     *
      * @author Jaco van Kooten
      */
     private static function logBeta($p, $q)
@@ -132,7 +93,7 @@ class Statistical
         if ($p != self::$logBetaCacheP || $q != self::$logBetaCacheQ) {
             self::$logBetaCacheP = $p;
             self::$logBetaCacheQ = $q;
-            if (($p <= 0.0) || ($q <= 0.0) || (($p + $q) > LOG_GAMMA_X_MAX_VALUE)) {
+            if (($p <= 0.0) || ($q <= 0.0) || (($p + $q) > self::LOG_GAMMA_X_MAX_VALUE)) {
                 self::$logBetaCacheResult = 0.0;
             } else {
                 self::$logBetaCacheResult = self::logGamma($p) + self::logGamma($q) - self::logGamma($p + $q);
@@ -145,7 +106,14 @@ class Statistical
     /**
      * Evaluates of continued fraction part of incomplete beta function.
      * Based on an idea from Numerical Recipes (W.H. Press et al, 1992).
+     *
      * @author Jaco van Kooten
+     *
+     * @param mixed $x
+     * @param mixed $p
+     * @param mixed $q
+     *
+     * @return float
      */
     private static function betaFraction($x, $p, $q)
     {
@@ -154,37 +122,37 @@ class Statistical
         $p_plus = $p + 1.0;
         $p_minus = $p - 1.0;
         $h = 1.0 - $sum_pq * $x / $p_plus;
-        if (abs($h) < XMININ) {
-            $h = XMININ;
+        if (abs($h) < self::XMININ) {
+            $h = self::XMININ;
         }
         $h = 1.0 / $h;
         $frac = $h;
         $m = 1;
         $delta = 0.0;
-        while ($m <= MAX_ITERATIONS && abs($delta - 1.0) > PRECISION) {
+        while ($m <= self::MAX_ITERATIONS && abs($delta - 1.0) > Functions::PRECISION) {
             $m2 = 2 * $m;
             // even index for d
             $d = $m * ($q - $m) * $x / (($p_minus + $m2) * ($p + $m2));
             $h = 1.0 + $d * $h;
-            if (abs($h) < XMININ) {
-                $h = XMININ;
+            if (abs($h) < self::XMININ) {
+                $h = self::XMININ;
             }
             $h = 1.0 / $h;
             $c = 1.0 + $d / $c;
-            if (abs($c) < XMININ) {
-                $c = XMININ;
+            if (abs($c) < self::XMININ) {
+                $c = self::XMININ;
             }
             $frac *= $h * $c;
             // odd index for d
             $d = -($p + $m) * ($sum_pq + $m) * $x / (($p + $m2) * ($p_plus + $m2));
             $h = 1.0 + $d * $h;
-            if (abs($h) < XMININ) {
-                $h = XMININ;
+            if (abs($h) < self::XMININ) {
+                $h = self::XMININ;
             }
             $h = 1.0 / $h;
             $c = 1.0 + $d / $c;
-            if (abs($c) < XMININ) {
-                $c = XMININ;
+            if (abs($c) < self::XMININ) {
+                $c = self::XMININ;
             }
             $delta = $h * $c;
             $frac *= $delta;
@@ -194,51 +162,54 @@ class Statistical
         return $frac;
     }
 
-/**
- * logGamma function
- *
- * @version 1.1
- * @author Jaco van Kooten
- *
- * Original author was Jaco van Kooten. Ported to PHP by Paul Meagher.
- *
- * The natural logarithm of the gamma function. <br />
- * Based on public domain NETLIB (Fortran) code by W. J. Cody and L. Stoltz <br />
- * Applied Mathematics Division <br />
- * Argonne National Laboratory <br />
- * Argonne, IL 60439 <br />
- * <p>
- * References:
- * <ol>
- * <li>W. J. Cody and K. E. Hillstrom, 'Chebyshev Approximations for the Natural
- *     Logarithm of the Gamma Function,' Math. Comp. 21, 1967, pp. 198-203.</li>
- * <li>K. E. Hillstrom, ANL/AMD Program ANLC366S, DGAMMA/DLGAMA, May, 1969.</li>
- * <li>Hart, Et. Al., Computer Approximations, Wiley and sons, New York, 1968.</li>
- * </ol>
- * </p>
- * <p>
- * From the original documentation:
- * </p>
- * <p>
- * This routine calculates the LOG(GAMMA) function for a positive real argument X.
- * Computation is based on an algorithm outlined in references 1 and 2.
- * The program uses rational functions that theoretically approximate LOG(GAMMA)
- * to at least 18 significant decimal digits. The approximation for X > 12 is from
- * reference 3, while approximations for X < 12.0 are similar to those in reference
- * 1, but are unpublished. The accuracy achieved depends on the arithmetic system,
- * the compiler, the intrinsic functions, and proper selection of the
- * machine-dependent constants.
- * </p>
- * <p>
- * Error returns: <br />
- * The program returns the value XINF for X .LE. 0.0 or when overflow would occur.
- * The computation is believed to be free of underflow and overflow.
- * </p>
- * @return MAX_VALUE for x < 0.0 or when overflow would occur, i.e. x > 2.55E305
- */
+    /**
+     * logGamma function.
+     *
+     * @version 1.1
+     *
+     * @author Jaco van Kooten
+     *
+     * Original author was Jaco van Kooten. Ported to PHP by Paul Meagher.
+     *
+     * The natural logarithm of the gamma function. <br />
+     * Based on public domain NETLIB (Fortran) code by W. J. Cody and L. Stoltz <br />
+     * Applied Mathematics Division <br />
+     * Argonne National Laboratory <br />
+     * Argonne, IL 60439 <br />
+     * <p>
+     * References:
+     * <ol>
+     * <li>W. J. Cody and K. E. Hillstrom, 'Chebyshev Approximations for the Natural
+     *     Logarithm of the Gamma Function,' Math. Comp. 21, 1967, pp. 198-203.</li>
+     * <li>K. E. Hillstrom, ANL/AMD Program ANLC366S, DGAMMA/DLGAMA, May, 1969.</li>
+     * <li>Hart, Et. Al., Computer Approximations, Wiley and sons, New York, 1968.</li>
+     * </ol>
+     * </p>
+     * <p>
+     * From the original documentation:
+     * </p>
+     * <p>
+     * This routine calculates the LOG(GAMMA) function for a positive real argument X.
+     * Computation is based on an algorithm outlined in references 1 and 2.
+     * The program uses rational functions that theoretically approximate LOG(GAMMA)
+     * to at least 18 significant decimal digits. The approximation for X > 12 is from
+     * reference 3, while approximations for X < 12.0 are similar to those in reference
+     * 1, but are unpublished. The accuracy achieved depends on the arithmetic system,
+     * the compiler, the intrinsic functions, and proper selection of the
+     * machine-dependent constants.
+     * </p>
+     * <p>
+     * Error returns: <br />
+     * The program returns the value XINF for X .LE. 0.0 or when overflow would occur.
+     * The computation is believed to be free of underflow and overflow.
+     * </p>
+     *
+     * @return float MAX_VALUE for x < 0.0 or when overflow would occur, i.e. x > 2.55E305
+     */
 
     // Function cache for logGamma
     private static $logGammaCacheResult = 0.0;
+
     private static $logGammaCacheX = 0.0;
 
     private static function logGamma($x)
@@ -326,9 +297,9 @@ class Statistical
             return self::$logGammaCacheResult;
         }
         $y = $x;
-        if ($y > 0.0 && $y <= LOG_GAMMA_X_MAX_VALUE) {
-            if ($y <= EPS) {
-                $res = -log(y);
+        if ($y > 0.0 && $y <= self::LOG_GAMMA_X_MAX_VALUE) {
+            if ($y <= self::EPS) {
+                $res = -log($y);
             } elseif ($y <= 1.5) {
                 // ---------------------
                 //    EPS .LT. X .LE. 1.5
@@ -395,7 +366,7 @@ class Statistical
                     }
                     $res /= $y;
                     $corr = log($y);
-                    $res = $res + log(SQRT2PI) - 0.5 * $corr;
+                    $res = $res + log(self::SQRT2PI) - 0.5 * $corr;
                     $res += $y * ($corr - 1.0);
                 }
             }
@@ -403,7 +374,7 @@ class Statistical
             // --------------------------
             //    Return for bad arguments
             // --------------------------
-            $res = MAX_VALUE;
+            $res = self::MAX_VALUE;
         }
         // ------------------------------
         //    Final adjustments and return
@@ -460,17 +431,17 @@ class Statistical
             $summer += ($p[$j] / ++$y);
         }
 
-        return exp(0 - $tmp + log(SQRT2PI * $summer / $x));
+        return exp(0 - $tmp + log(self::SQRT2PI * $summer / $x));
     }
 
-    /***************************************************************************
+    /*
      *                                inverse_ncdf.php
      *                            -------------------
      *    begin                : Friday, January 16, 2004
      *    copyright            : (C) 2004 Michael Nickerson
      *    email                : nickersonm@yahoo.com
      *
-     ***************************************************************************/
+     */
     private static function inverseNcdf($p)
     {
         //    Inverse ncdf approximation by Peter J. Acklam, implementation adapted to
@@ -547,153 +518,8 @@ class Statistical
         return Functions::NULL();
     }
 
-    private static function inverseNcdf2($prob)
-    {
-        //    Approximation of inverse standard normal CDF developed by
-        //    B. Moro, "The Full Monte," Risk 8(2), Feb 1995, 57-58.
-
-        $a1 = 2.50662823884;
-        $a2 = -18.61500062529;
-        $a3 = 41.39119773534;
-        $a4 = -25.44106049637;
-
-        $b1 = -8.4735109309;
-        $b2 = 23.08336743743;
-        $b3 = -21.06224101826;
-        $b4 = 3.13082909833;
-
-        $c1 = 0.337475482272615;
-        $c2 = 0.976169019091719;
-        $c3 = 0.160797971491821;
-        $c4 = 2.76438810333863E-02;
-        $c5 = 3.8405729373609E-03;
-        $c6 = 3.951896511919E-04;
-        $c7 = 3.21767881768E-05;
-        $c8 = 2.888167364E-07;
-        $c9 = 3.960315187E-07;
-
-        $y = $prob - 0.5;
-        if (abs($y) < 0.42) {
-            $z = ($y * $y);
-            $z = $y * ((($a4 * $z + $a3) * $z + $a2) * $z + $a1) / (((($b4 * $z + $b3) * $z + $b2) * $z + $b1) * $z + 1);
-        } else {
-            if ($y > 0) {
-                $z = log(-log(1 - $prob));
-            } else {
-                $z = log(-log($prob));
-            }
-            $z = $c1 + $z * ($c2 + $z * ($c3 + $z * ($c4 + $z * ($c5 + $z * ($c6 + $z * ($c7 + $z * ($c8 + $z * $c9)))))));
-            if ($y < 0) {
-                $z = -$z;
-            }
-        }
-
-        return $z;
-    }    //    function inverseNcdf2()
-
-    private static function inverseNcdf3($p)
-    {
-        //    ALGORITHM AS241 APPL. STATIST. (1988) VOL. 37, NO. 3.
-        //    Produces the normal deviate Z corresponding to a given lower
-        //    tail area of P; Z is accurate to about 1 part in 10**16.
-        //
-        //    This is a PHP version of the original FORTRAN code that can
-        //    be found at http://lib.stat.cmu.edu/apstat/
-        $split1 = 0.425;
-        $split2 = 5;
-        $const1 = 0.180625;
-        $const2 = 1.6;
-
-        //    coefficients for p close to 0.5
-        $a0 = 3.3871328727963666080;
-        $a1 = 1.3314166789178437745E+2;
-        $a2 = 1.9715909503065514427E+3;
-        $a3 = 1.3731693765509461125E+4;
-        $a4 = 4.5921953931549871457E+4;
-        $a5 = 6.7265770927008700853E+4;
-        $a6 = 3.3430575583588128105E+4;
-        $a7 = 2.5090809287301226727E+3;
-
-        $b1 = 4.2313330701600911252E+1;
-        $b2 = 6.8718700749205790830E+2;
-        $b3 = 5.3941960214247511077E+3;
-        $b4 = 2.1213794301586595867E+4;
-        $b5 = 3.9307895800092710610E+4;
-        $b6 = 2.8729085735721942674E+4;
-        $b7 = 5.2264952788528545610E+3;
-
-        //    coefficients for p not close to 0, 0.5 or 1.
-        $c0 = 1.42343711074968357734;
-        $c1 = 4.63033784615654529590;
-        $c2 = 5.76949722146069140550;
-        $c3 = 3.64784832476320460504;
-        $c4 = 1.27045825245236838258;
-        $c5 = 2.41780725177450611770E-1;
-        $c6 = 2.27238449892691845833E-2;
-        $c7 = 7.74545014278341407640E-4;
-
-        $d1 = 2.05319162663775882187;
-        $d2 = 1.67638483018380384940;
-        $d3 = 6.89767334985100004550E-1;
-        $d4 = 1.48103976427480074590E-1;
-        $d5 = 1.51986665636164571966E-2;
-        $d6 = 5.47593808499534494600E-4;
-        $d7 = 1.05075007164441684324E-9;
-
-        //    coefficients for p near 0 or 1.
-        $e0 = 6.65790464350110377720;
-        $e1 = 5.46378491116411436990;
-        $e2 = 1.78482653991729133580;
-        $e3 = 2.96560571828504891230E-1;
-        $e4 = 2.65321895265761230930E-2;
-        $e5 = 1.24266094738807843860E-3;
-        $e6 = 2.71155556874348757815E-5;
-        $e7 = 2.01033439929228813265E-7;
-
-        $f1 = 5.99832206555887937690E-1;
-        $f2 = 1.36929880922735805310E-1;
-        $f3 = 1.48753612908506148525E-2;
-        $f4 = 7.86869131145613259100E-4;
-        $f5 = 1.84631831751005468180E-5;
-        $f6 = 1.42151175831644588870E-7;
-        $f7 = 2.04426310338993978564E-15;
-
-        $q = $p - 0.5;
-
-        //    computation for p close to 0.5
-        if (abs($q) <= split1) {
-            $R = $const1 - $q * $q;
-            $z = $q * ((((((($a7 * $R + $a6) * $R + $a5) * $R + $a4) * $R + $a3) * $R + $a2) * $R + $a1) * $R + $a0) /
-                      ((((((($b7 * $R + $b6) * $R + $b5) * $R + $b4) * $R + $b3) * $R + $b2) * $R + $b1) * $R + 1);
-        } else {
-            if ($q < 0) {
-                $R = $p;
-            } else {
-                $R = 1 - $p;
-            }
-            $R = pow(-log($R), 2);
-
-            //    computation for p not close to 0, 0.5 or 1.
-            if ($R <= $split2) {
-                $R = $R - $const2;
-                $z = ((((((($c7 * $R + $c6) * $R + $c5) * $R + $c4) * $R + $c3) * $R + $c2) * $R + $c1) * $R + $c0) /
-                     ((((((($d7 * $R + $d6) * $R + $d5) * $R + $d4) * $R + $d3) * $R + $d2) * $R + $d1) * $R + 1);
-            } else {
-                //    computation for p near 0 or 1.
-                $R = $R - $split2;
-                $z = ((((((($e7 * $R + $e6) * $R + $e5) * $R + $e4) * $R + $e3) * $R + $e2) * $R + $e1) * $R + $e0) /
-                     ((((((($f7 * $R + $f6) * $R + $f5) * $R + $f4) * $R + $f3) * $R + $f2) * $R + $f1) * $R + 1);
-            }
-            if ($q < 0) {
-                $z = -$z;
-            }
-        }
-
-        return $z;
-    }
-
     /**
-     * AVEDEV
+     * AVEDEV.
      *
      * Returns the average of the absolute deviations of data points from their mean.
      * AVEDEV is a measure of the variability in a data set.
@@ -702,12 +528,14 @@ class Statistical
      *        AVEDEV(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    float
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return float
      */
-    public static function AVEDEV()
+    public static function AVEDEV(...$args)
     {
-        $aArgs = Functions::flattenArrayIndexed(func_get_args());
+        $aArgs = Functions::flattenArrayIndexed($args);
 
         // Return value
         $returnValue = null;
@@ -718,11 +546,11 @@ class Statistical
             foreach ($aArgs as $k => $arg) {
                 if ((is_bool($arg)) &&
                     ((!Functions::isCellValue($k)) || (Functions::getCompatibilityMode() == Functions::COMPATIBILITY_OPENOFFICE))) {
-                    $arg = (integer) $arg;
+                    $arg = (int) $arg;
                 }
                 // Is it a numeric value?
                 if ((is_numeric($arg)) && (!is_string($arg))) {
-                    if (is_null($returnValue)) {
+                    if ($returnValue === null) {
                         $returnValue = abs($arg - $aMean);
                     } else {
                         $returnValue += abs($arg - $aMean);
@@ -743,7 +571,7 @@ class Statistical
     }
 
     /**
-     * AVERAGE
+     * AVERAGE.
      *
      * Returns the average (arithmetic mean) of the arguments
      *
@@ -751,22 +579,24 @@ class Statistical
      *        AVERAGE(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    float
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return float
      */
-    public static function AVERAGE()
+    public static function AVERAGE(...$args)
     {
         $returnValue = $aCount = 0;
 
         // Loop through arguments
-        foreach (Functions::flattenArrayIndexed(func_get_args()) as $k => $arg) {
+        foreach (Functions::flattenArrayIndexed($args) as $k => $arg) {
             if ((is_bool($arg)) &&
                 ((!Functions::isCellValue($k)) || (Functions::getCompatibilityMode() == Functions::COMPATIBILITY_OPENOFFICE))) {
-                $arg = (integer) $arg;
+                $arg = (int) $arg;
             }
             // Is it a numeric value?
             if ((is_numeric($arg)) && (!is_string($arg))) {
-                if (is_null($returnValue)) {
+                if ($returnValue === null) {
                     $returnValue = $arg;
                 } else {
                     $returnValue += $arg;
@@ -778,13 +608,13 @@ class Statistical
         // Return
         if ($aCount > 0) {
             return $returnValue / $aCount;
-        } else {
-            return Functions::DIV0();
         }
+
+        return Functions::DIV0();
     }
 
     /**
-     * AVERAGEA
+     * AVERAGEA.
      *
      * Returns the average of its arguments, including numbers, text, and logical values
      *
@@ -792,26 +622,28 @@ class Statistical
      *        AVERAGEA(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    float
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return float
      */
-    public static function AVERAGEA()
+    public static function AVERAGEA(...$args)
     {
         $returnValue = null;
 
         $aCount = 0;
         // Loop through arguments
-        foreach (Functions::flattenArrayIndexed(func_get_args()) as $k => $arg) {
+        foreach (Functions::flattenArrayIndexed($args) as $k => $arg) {
             if ((is_bool($arg)) &&
                 (!Functions::isMatrixValue($k))) {
             } else {
                 if ((is_numeric($arg)) || (is_bool($arg)) || ((is_string($arg) && ($arg != '')))) {
                     if (is_bool($arg)) {
-                        $arg = (integer) $arg;
+                        $arg = (int) $arg;
                     } elseif (is_string($arg)) {
                         $arg = 0;
                     }
-                    if (is_null($returnValue)) {
+                    if ($returnValue === null) {
                         $returnValue = $arg;
                     } else {
                         $returnValue += $arg;
@@ -823,13 +655,13 @@ class Statistical
 
         if ($aCount > 0) {
             return $returnValue / $aCount;
-        } else {
-            return Functions::DIV0();
         }
+
+        return Functions::DIV0();
     }
 
     /**
-     * AVERAGEIF
+     * AVERAGEIF.
      *
      * Returns the average value from a range of cells that contain numbers within the list of arguments
      *
@@ -837,10 +669,12 @@ class Statistical
      *        AVERAGEIF(value1[,value2[, ...]],condition)
      *
      * @category Mathematical and Trigonometric Functions
-     * @param    mixed        $arg,...        Data values
-     * @param    string        $condition        The criteria that defines which cells will be checked.
-     * @param    mixed[]        $averageArgs    Data values
-     * @return    float
+     *
+     * @param mixed $aArgs Data values
+     * @param string $condition the criteria that defines which cells will be checked
+     * @param mixed[] $averageArgs Data values
+     *
+     * @return float
      */
     public static function AVERAGEIF($aArgs, $condition, $averageArgs = [])
     {
@@ -856,11 +690,11 @@ class Statistical
         $aCount = 0;
         foreach ($aArgs as $key => $arg) {
             if (!is_numeric($arg)) {
-                $arg = \PhpOffice\PhpSpreadsheet\Calculation::wrapResult(strtoupper($arg));
+                $arg = Calculation::wrapResult(strtoupper($arg));
             }
             $testCondition = '=' . $arg . $condition;
-            if (\PhpOffice\PhpSpreadsheet\Calculation::getInstance()->_calculateFormulaValue($testCondition)) {
-                if ((is_null($returnValue)) || ($arg > $returnValue)) {
+            if (Calculation::getInstance()->_calculateFormulaValue($testCondition)) {
+                if (($returnValue === null) || ($arg > $returnValue)) {
                     $returnValue += $arg;
                     ++$aCount;
                 }
@@ -875,14 +709,17 @@ class Statistical
     }
 
     /**
-     * BETADIST
+     * BETADIST.
      *
      * Returns the beta distribution.
      *
-     * @param    float        $value            Value at which you want to evaluate the distribution
-     * @param    float        $alpha            Parameter to the distribution
-     * @param    float        $beta            Parameter to the distribution
-     * @return    float
+     * @param float $value Value at which you want to evaluate the distribution
+     * @param float $alpha Parameter to the distribution
+     * @param float $beta Parameter to the distribution
+     * @param mixed $rMin
+     * @param mixed $rMax
+     *
+     * @return float
      */
     public static function BETADIST($value, $alpha, $beta, $rMin = 0, $rMax = 1)
     {
@@ -911,16 +748,17 @@ class Statistical
     }
 
     /**
-     * BETAINV
+     * BETAINV.
      *
      * Returns the inverse of the beta distribution.
      *
-     * @param    float        $probability    Probability at which you want to evaluate the distribution
-     * @param    float        $alpha            Parameter to the distribution
-     * @param    float        $beta            Parameter to the distribution
-     * @param    float        $rMin            Minimum value
-     * @param    float        $rMax            Maximum value
-     * @return    float
+     * @param float $probability Probability at which you want to evaluate the distribution
+     * @param float $alpha Parameter to the distribution
+     * @param float $beta Parameter to the distribution
+     * @param float $rMin Minimum value
+     * @param float $rMax Maximum value
+     *
+     * @return float
      */
     public static function BETAINV($probability, $alpha, $beta, $rMin = 0, $rMax = 1)
     {
@@ -943,7 +781,7 @@ class Statistical
             $b = 2;
 
             $i = 0;
-            while ((($b - $a) > PRECISION) && ($i++ < MAX_ITERATIONS)) {
+            while ((($b - $a) > Functions::PRECISION) && ($i++ < self::MAX_ITERATIONS)) {
                 $guess = ($a + $b) / 2;
                 $result = self::BETADIST($guess, $alpha, $beta);
                 if (($result == $probability) || ($result == 0)) {
@@ -954,7 +792,7 @@ class Statistical
                     $a = $guess;
                 }
             }
-            if ($i == MAX_ITERATIONS) {
+            if ($i == self::MAX_ITERATIONS) {
                 return Functions::NA();
             }
 
@@ -965,7 +803,7 @@ class Statistical
     }
 
     /**
-     * BINOMDIST
+     * BINOMDIST.
      *
      * Returns the individual term binomial distribution probability. Use BINOMDIST in problems with
      *        a fixed number of tests or trials, when the outcomes of any trial are only success or failure,
@@ -973,11 +811,12 @@ class Statistical
      *        experiment. For example, BINOMDIST can calculate the probability that two of the next three
      *        babies born are male.
      *
-     * @param    float        $value            Number of successes in trials
-     * @param    float        $trials            Number of trials
-     * @param    float        $probability    Probability of success on each trial
-     * @param    bool        $cumulative
-     * @return    float
+     * @param float $value Number of successes in trials
+     * @param float $trials Number of trials
+     * @param float $probability Probability of success on each trial
+     * @param bool $cumulative
+     *
+     * @return float
      *
      * @todo    Cumulative distribution function
      */
@@ -1002,9 +841,9 @@ class Statistical
                     }
 
                     return $summer;
-                } else {
-                    return MathTrig::COMBIN($trials, $value) * pow($probability, $value) * pow(1 - $probability, $trials - $value);
                 }
+
+                return MathTrig::COMBIN($trials, $value) * pow($probability, $value) * pow(1 - $probability, $trials - $value);
             }
         }
 
@@ -1012,13 +851,14 @@ class Statistical
     }
 
     /**
-     * CHIDIST
+     * CHIDIST.
      *
      * Returns the one-tailed probability of the chi-squared distribution.
      *
-     * @param    float        $value            Value for the function
-     * @param    float        $degrees        degrees of freedom
-     * @return    float
+     * @param float $value Value for the function
+     * @param float $degrees degrees of freedom
+     *
+     * @return float
      */
     public static function CHIDIST($value, $degrees)
     {
@@ -1044,13 +884,14 @@ class Statistical
     }
 
     /**
-     * CHIINV
+     * CHIINV.
      *
      * Returns the one-tailed probability of the chi-squared distribution.
      *
-     * @param    float        $probability    Probability for the function
-     * @param    float        $degrees        degrees of freedom
-     * @return    float
+     * @param float $probability Probability for the function
+     * @param float $degrees degrees of freedom
+     *
+     * @return float
      */
     public static function CHIINV($probability, $degrees)
     {
@@ -1065,7 +906,7 @@ class Statistical
             $dx = 1;
             $i = 0;
 
-            while ((abs($dx) > PRECISION) && ($i++ < MAX_ITERATIONS)) {
+            while ((abs($dx) > Functions::PRECISION) && ($i++ < self::MAX_ITERATIONS)) {
                 // Apply Newton-Raphson step
                 $result = self::CHIDIST($x, $degrees);
                 $error = $result - $probability;
@@ -1090,7 +931,7 @@ class Statistical
                 }
                 $x = $xNew;
             }
-            if ($i == MAX_ITERATIONS) {
+            if ($i == self::MAX_ITERATIONS) {
                 return Functions::NA();
             }
 
@@ -1101,14 +942,15 @@ class Statistical
     }
 
     /**
-     * CONFIDENCE
+     * CONFIDENCE.
      *
      * Returns the confidence interval for a population mean
      *
-     * @param    float        $alpha
-     * @param    float        $stdDev        Standard Deviation
-     * @param    float        $size
-     * @return    float
+     * @param float $alpha
+     * @param float $stdDev Standard Deviation
+     * @param float $size
+     *
+     * @return float
      */
     public static function CONFIDENCE($alpha, $stdDev, $size)
     {
@@ -1131,17 +973,18 @@ class Statistical
     }
 
     /**
-     * CORREL
+     * CORREL.
      *
      * Returns covariance, the average of the products of deviations for each data point pair.
      *
-     * @param    array of mixed        Data Series Y
-     * @param    array of mixed        Data Series X
-     * @return    float
+     * @param mixed $yValues array of mixed Data Series Y
+     * @param null|mixed $xValues array of mixed Data Series X
+     *
+     * @return float
      */
     public static function CORREL($yValues, $xValues = null)
     {
-        if ((is_null($xValues)) || (!is_array($yValues)) || (!is_array($xValues))) {
+        if (($xValues === null) || (!is_array($yValues)) || (!is_array($xValues))) {
             return Functions::VALUE();
         }
         if (!self::checkTrendArrays($yValues, $xValues)) {
@@ -1156,13 +999,13 @@ class Statistical
             return Functions::DIV0();
         }
 
-        $bestFitLinear = \PhpOffice\PhpSpreadsheet\Shared\trend\trend::calculate(\PhpOffice\PhpSpreadsheet\Shared\trend\trend::TREND_LINEAR, $yValues, $xValues);
+        $bestFitLinear = Trend::calculate(Trend::TREND_LINEAR, $yValues, $xValues);
 
         return $bestFitLinear->getCorrelation();
     }
 
     /**
-     * COUNT
+     * COUNT.
      *
      * Counts the number of cells that contain numbers within the list of arguments
      *
@@ -1170,19 +1013,21 @@ class Statistical
      *        COUNT(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    int
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return int
      */
-    public static function COUNT()
+    public static function COUNT(...$args)
     {
         $returnValue = 0;
 
         // Loop through arguments
-        $aArgs = Functions::flattenArrayIndexed(func_get_args());
+        $aArgs = Functions::flattenArrayIndexed($args);
         foreach ($aArgs as $k => $arg) {
             if ((is_bool($arg)) &&
                 ((!Functions::isCellValue($k)) || (Functions::getCompatibilityMode() == Functions::COMPATIBILITY_OPENOFFICE))) {
-                $arg = (integer) $arg;
+                $arg = (int) $arg;
             }
             // Is it a numeric value?
             if ((is_numeric($arg)) && (!is_string($arg))) {
@@ -1194,7 +1039,7 @@ class Statistical
     }
 
     /**
-     * COUNTA
+     * COUNTA.
      *
      * Counts the number of cells that are not empty within the list of arguments
      *
@@ -1202,15 +1047,17 @@ class Statistical
      *        COUNTA(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    int
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return int
      */
-    public static function COUNTA()
+    public static function COUNTA(...$args)
     {
         $returnValue = 0;
 
         // Loop through arguments
-        $aArgs = Functions::flattenArray(func_get_args());
+        $aArgs = Functions::flattenArray($args);
         foreach ($aArgs as $arg) {
             // Is it a numeric, boolean or string value?
             if ((is_numeric($arg)) || (is_bool($arg)) || ((is_string($arg) && ($arg != '')))) {
@@ -1222,7 +1069,7 @@ class Statistical
     }
 
     /**
-     * COUNTBLANK
+     * COUNTBLANK.
      *
      * Counts the number of empty cells within the list of arguments
      *
@@ -1230,18 +1077,20 @@ class Statistical
      *        COUNTBLANK(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    int
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return int
      */
-    public static function COUNTBLANK()
+    public static function COUNTBLANK(...$args)
     {
         $returnValue = 0;
 
         // Loop through arguments
-        $aArgs = Functions::flattenArray(func_get_args());
+        $aArgs = Functions::flattenArray($args);
         foreach ($aArgs as $arg) {
             // Is it a blank cell?
-            if ((is_null($arg)) || ((is_string($arg)) && ($arg == ''))) {
+            if (($arg === null) || ((is_string($arg)) && ($arg == ''))) {
                 ++$returnValue;
             }
         }
@@ -1250,7 +1099,7 @@ class Statistical
     }
 
     /**
-     * COUNTIF
+     * COUNTIF.
      *
      * Counts the number of cells that contain numbers within the list of arguments
      *
@@ -1258,9 +1107,11 @@ class Statistical
      *        COUNTIF(value1[,value2[, ...]],condition)
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @param    string        $condition        The criteria that defines which cells will be counted.
-     * @return    int
+     *
+     * @param mixed $aArgs Data values
+     * @param string $condition the criteria that defines which cells will be counted
+     *
+     * @return int
      */
     public static function COUNTIF($aArgs, $condition)
     {
@@ -1271,10 +1122,10 @@ class Statistical
         // Loop through arguments
         foreach ($aArgs as $arg) {
             if (!is_numeric($arg)) {
-                $arg = \PhpOffice\PhpSpreadsheet\Calculation::wrapResult(strtoupper($arg));
+                $arg = Calculation::wrapResult(strtoupper($arg));
             }
             $testCondition = '=' . $arg . $condition;
-            if (\PhpOffice\PhpSpreadsheet\Calculation::getInstance()->_calculateFormulaValue($testCondition)) {
+            if (Calculation::getInstance()->_calculateFormulaValue($testCondition)) {
                 // Is it a value within our criteria
                 ++$returnValue;
             }
@@ -1284,13 +1135,14 @@ class Statistical
     }
 
     /**
-     * COVAR
+     * COVAR.
      *
      * Returns covariance, the average of the products of deviations for each data point pair.
      *
-     * @param    array of mixed        Data Series Y
-     * @param    array of mixed        Data Series X
-     * @return    float
+     * @param mixed $yValues array of mixed Data Series Y
+     * @param mixed $xValues array of mixed Data Series X
+     *
+     * @return float
      */
     public static function COVAR($yValues, $xValues)
     {
@@ -1306,23 +1158,24 @@ class Statistical
             return Functions::DIV0();
         }
 
-        $bestFitLinear = \PhpOffice\PhpSpreadsheet\Shared\trend\trend::calculate(\PhpOffice\PhpSpreadsheet\Shared\trend\trend::TREND_LINEAR, $yValues, $xValues);
+        $bestFitLinear = Trend::calculate(Trend::TREND_LINEAR, $yValues, $xValues);
 
         return $bestFitLinear->getCovariance();
     }
 
     /**
-     * CRITBINOM
+     * CRITBINOM.
      *
      * Returns the smallest value for which the cumulative binomial distribution is greater
      *        than or equal to a criterion value
      *
      * See http://support.microsoft.com/kb/828117/ for details of the algorithm used
      *
-     * @param    float        $trials            number of Bernoulli trials
-     * @param    float        $probability    probability of a success on each trial
-     * @param    float        $alpha            criterion value
-     * @return    int
+     * @param float $trials number of Bernoulli trials
+     * @param float $probability probability of a success on each trial
+     * @param float $alpha criterion value
+     *
+     * @return int
      *
      * @todo    Warning. This implementation differs from the algorithm detailed on the MS
      *            web site in that $CumPGuessMinus1 = $CumPGuess - 1 rather than $CumPGuess - $PGuess
@@ -1434,7 +1287,7 @@ class Statistical
     }
 
     /**
-     * DEVSQ
+     * DEVSQ.
      *
      * Returns the sum of squares of deviations of data points from their sample mean.
      *
@@ -1442,12 +1295,14 @@ class Statistical
      *        DEVSQ(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    float
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return float
      */
-    public static function DEVSQ()
+    public static function DEVSQ(...$args)
     {
-        $aArgs = Functions::flattenArrayIndexed(func_get_args());
+        $aArgs = Functions::flattenArrayIndexed($args);
 
         // Return value
         $returnValue = null;
@@ -1460,10 +1315,10 @@ class Statistical
                 if ((is_bool($arg)) &&
                     ((!Functions::isCellValue($k)) ||
                     (Functions::getCompatibilityMode() == Functions::COMPATIBILITY_OPENOFFICE))) {
-                    $arg = (integer) $arg;
+                    $arg = (int) $arg;
                 }
                 if ((is_numeric($arg)) && (!is_string($arg))) {
-                    if (is_null($returnValue)) {
+                    if ($returnValue === null) {
                         $returnValue = pow(($arg - $aMean), 2);
                     } else {
                         $returnValue += pow(($arg - $aMean), 2);
@@ -1473,27 +1328,28 @@ class Statistical
             }
 
             // Return
-            if (is_null($returnValue)) {
+            if ($returnValue === null) {
                 return Functions::NAN();
-            } else {
-                return $returnValue;
             }
+
+            return $returnValue;
         }
 
         return self::NA();
     }
 
     /**
-     * EXPONDIST
+     * EXPONDIST.
      *
      *    Returns the exponential distribution. Use EXPONDIST to model the time between events,
      *        such as how long an automated bank teller takes to deliver cash. For example, you can
      *        use EXPONDIST to determine the probability that the process takes at most 1 minute.
      *
-     * @param    float        $value            Value of the function
-     * @param    float        $lambda            The parameter value
-     * @param    bool        $cumulative
-     * @return    float
+     * @param float $value Value of the function
+     * @param float $lambda The parameter value
+     * @param bool $cumulative
+     *
+     * @return float
      */
     public static function EXPONDIST($value, $lambda, $cumulative)
     {
@@ -1508,9 +1364,9 @@ class Statistical
             if ((is_numeric($cumulative)) || (is_bool($cumulative))) {
                 if ($cumulative) {
                     return 1 - exp(0 - $value * $lambda);
-                } else {
-                    return $lambda * exp(0 - $value * $lambda);
                 }
+
+                return $lambda * exp(0 - $value * $lambda);
             }
         }
 
@@ -1518,14 +1374,15 @@ class Statistical
     }
 
     /**
-     * FISHER
+     * FISHER.
      *
      * Returns the Fisher transformation at x. This transformation produces a function that
      *        is normally distributed rather than skewed. Use this function to perform hypothesis
      *        testing on the correlation coefficient.
      *
-     * @param    float        $value
-     * @return    float
+     * @param float $value
+     *
+     * @return float
      */
     public static function FISHER($value)
     {
@@ -1543,14 +1400,15 @@ class Statistical
     }
 
     /**
-     * FISHERINV
+     * FISHERINV.
      *
      * Returns the inverse of the Fisher transformation. Use this transformation when
      *        analyzing correlations between ranges or arrays of data. If y = FISHER(x), then
      *        FISHERINV(y) = x.
      *
-     * @param    float        $value
-     * @return    float
+     * @param float $value
+     *
+     * @return float
      */
     public static function FISHERINV($value)
     {
@@ -1564,14 +1422,15 @@ class Statistical
     }
 
     /**
-     * FORECAST
+     * FORECAST.
      *
      * Calculates, or predicts, a future value by using existing values. The predicted value is a y-value for a given x-value.
      *
-     * @param    float                Value of X for which we want to find Y
-     * @param    array of mixed        Data Series Y
-     * @param    array of mixed        Data Series X
-     * @return    float
+     * @param float $xValue Value of X for which we want to find Y
+     * @param mixed $yValues array of mixed Data Series Y
+     * @param mixed $xValues of mixed Data Series X
+     *
+     * @return float
      */
     public static function FORECAST($xValue, $yValues, $xValues)
     {
@@ -1590,21 +1449,22 @@ class Statistical
             return Functions::DIV0();
         }
 
-        $bestFitLinear = \PhpOffice\PhpSpreadsheet\Shared\trend\trend::calculate(\PhpOffice\PhpSpreadsheet\Shared\trend\trend::TREND_LINEAR, $yValues, $xValues);
+        $bestFitLinear = Trend::calculate(Trend::TREND_LINEAR, $yValues, $xValues);
 
         return $bestFitLinear->getValueOfYForX($xValue);
     }
 
     /**
-     * GAMMADIST
+     * GAMMADIST.
      *
      * Returns the gamma distribution.
      *
-     * @param    float        $value            Value at which you want to evaluate the distribution
-     * @param    float        $a                Parameter to the distribution
-     * @param    float        $b                Parameter to the distribution
-     * @param    bool        $cumulative
-     * @return    float
+     * @param float $value Value at which you want to evaluate the distribution
+     * @param float $a Parameter to the distribution
+     * @param float $b Parameter to the distribution
+     * @param bool $cumulative
+     *
+     * @return float
      */
     public static function GAMMADIST($value, $a, $b, $cumulative)
     {
@@ -1619,9 +1479,9 @@ class Statistical
             if ((is_numeric($cumulative)) || (is_bool($cumulative))) {
                 if ($cumulative) {
                     return self::incompleteGamma($a, $value / $b) / self::gamma($a);
-                } else {
-                    return (1 / (pow($b, $a) * self::gamma($a))) * pow($value, $a - 1) * exp(0 - ($value / $b));
                 }
+
+                return (1 / (pow($b, $a) * self::gamma($a))) * pow($value, $a - 1) * exp(0 - ($value / $b));
             }
         }
 
@@ -1629,14 +1489,15 @@ class Statistical
     }
 
     /**
-     * GAMMAINV
+     * GAMMAINV.
      *
      * Returns the inverse of the beta distribution.
      *
-     * @param    float        $probability    Probability at which you want to evaluate the distribution
-     * @param    float        $alpha            Parameter to the distribution
-     * @param    float        $beta            Parameter to the distribution
-     * @return    float
+     * @param float $probability Probability at which you want to evaluate the distribution
+     * @param float $alpha Parameter to the distribution
+     * @param float $beta Parameter to the distribution
+     *
+     * @return float
      */
     public static function GAMMAINV($probability, $alpha, $beta)
     {
@@ -1657,7 +1518,7 @@ class Statistical
             $dx = 1024;
             $i = 0;
 
-            while ((abs($dx) > PRECISION) && ($i++ < MAX_ITERATIONS)) {
+            while ((abs($dx) > Functions::PRECISION) && ($i++ < self::MAX_ITERATIONS)) {
                 // Apply Newton-Raphson step
                 $error = self::GAMMADIST($x, $alpha, $beta, true) - $probability;
                 if ($error < 0.0) {
@@ -1680,7 +1541,7 @@ class Statistical
                 }
                 $x = $xNew;
             }
-            if ($i == MAX_ITERATIONS) {
+            if ($i == self::MAX_ITERATIONS) {
                 return Functions::NA();
             }
 
@@ -1691,12 +1552,13 @@ class Statistical
     }
 
     /**
-     * GAMMALN
+     * GAMMALN.
      *
      * Returns the natural logarithm of the gamma function.
      *
-     * @param    float        $value
-     * @return    float
+     * @param float $value
+     *
+     * @return float
      */
     public static function GAMMALN($value)
     {
@@ -1714,7 +1576,7 @@ class Statistical
     }
 
     /**
-     * GEOMEAN
+     * GEOMEAN.
      *
      * Returns the geometric mean of an array or range of positive data. For example, you
      *        can use GEOMEAN to calculate average growth rate given compound interest with
@@ -1724,12 +1586,14 @@ class Statistical
      *        GEOMEAN(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    float
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return float
      */
-    public static function GEOMEAN()
+    public static function GEOMEAN(...$args)
     {
-        $aArgs = Functions::flattenArray(func_get_args());
+        $aArgs = Functions::flattenArray($args);
 
         $aMean = MathTrig::PRODUCT($aArgs);
         if (is_numeric($aMean) && ($aMean > 0)) {
@@ -1743,24 +1607,25 @@ class Statistical
     }
 
     /**
-     * GROWTH
+     * GROWTH.
      *
      * Returns values along a predicted emponential Trend
      *
-     * @param    array of mixed        Data Series Y
-     * @param    array of mixed        Data Series X
-     * @param    array of mixed        Values of X for which we want to find Y
-     * @param    bool                A logical value specifying whether to force the intersect to equal 0.
-     * @return    array of float
+     * @param mixed[] $yValues Data Series Y
+     * @param mixed[] $xValues Data Series X
+     * @param mixed[] $newValues Values of X for which we want to find Y
+     * @param bool $const a logical value specifying whether to force the intersect to equal 0
+     *
+     * @return array of float
      */
     public static function GROWTH($yValues, $xValues = [], $newValues = [], $const = true)
     {
         $yValues = Functions::flattenArray($yValues);
         $xValues = Functions::flattenArray($xValues);
         $newValues = Functions::flattenArray($newValues);
-        $const = (is_null($const)) ? true : (boolean) Functions::flattenSingleValue($const);
+        $const = ($const === null) ? true : (bool) Functions::flattenSingleValue($const);
 
-        $bestFitExponential = \PhpOffice\PhpSpreadsheet\Shared\trend\trend::calculate(\PhpOffice\PhpSpreadsheet\Shared\trend\trend::TREND_EXPONENTIAL, $yValues, $xValues, $const);
+        $bestFitExponential = Trend::calculate(Trend::TREND_EXPONENTIAL, $yValues, $xValues, $const);
         if (empty($newValues)) {
             $newValues = $bestFitExponential->getXValues();
         }
@@ -1774,7 +1639,7 @@ class Statistical
     }
 
     /**
-     * HARMEAN
+     * HARMEAN.
      *
      * Returns the harmonic mean of a data set. The harmonic mean is the reciprocal of the
      *        arithmetic mean of reciprocals.
@@ -1783,16 +1648,18 @@ class Statistical
      *        HARMEAN(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    float
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return float
      */
-    public static function HARMEAN()
+    public static function HARMEAN(...$args)
     {
         // Return value
         $returnValue = Functions::NA();
 
         // Loop through arguments
-        $aArgs = Functions::flattenArray(func_get_args());
+        $aArgs = Functions::flattenArray($args);
         if (self::MIN($aArgs) < 0) {
             return Functions::NAN();
         }
@@ -1803,7 +1670,7 @@ class Statistical
                 if ($arg <= 0) {
                     return Functions::NAN();
                 }
-                if (is_null($returnValue)) {
+                if ($returnValue === null) {
                     $returnValue = (1 / $arg);
                 } else {
                     $returnValue += (1 / $arg);
@@ -1815,22 +1682,23 @@ class Statistical
         // Return
         if ($aCount > 0) {
             return 1 / ($returnValue / $aCount);
-        } else {
-            return $returnValue;
         }
+
+        return $returnValue;
     }
 
     /**
-     * HYPGEOMDIST
+     * HYPGEOMDIST.
      *
      * Returns the hypergeometric distribution. HYPGEOMDIST returns the probability of a given number of
      * sample successes, given the sample size, population successes, and population size.
      *
-     * @param    float        $sampleSuccesses        Number of successes in the sample
-     * @param    float        $sampleNumber            Size of the sample
-     * @param    float        $populationSuccesses    Number of successes in the population
-     * @param    float        $populationNumber        Population size
-     * @return    float
+     * @param float $sampleSuccesses Number of successes in the sample
+     * @param float $sampleNumber Size of the sample
+     * @param float $populationSuccesses Number of successes in the population
+     * @param float $populationNumber Population size
+     *
+     * @return float
      */
     public static function HYPGEOMDIST($sampleSuccesses, $sampleNumber, $populationSuccesses, $populationNumber)
     {
@@ -1859,13 +1727,14 @@ class Statistical
     }
 
     /**
-     * INTERCEPT
+     * INTERCEPT.
      *
      * Calculates the point at which a line will intersect the y-axis by using existing x-values and y-values.
      *
-     * @param    array of mixed        Data Series Y
-     * @param    array of mixed        Data Series X
-     * @return    float
+     * @param mixed[] $yValues Data Series Y
+     * @param mixed[] $xValues Data Series X
+     *
+     * @return float
      */
     public static function INTERCEPT($yValues, $xValues)
     {
@@ -1881,25 +1750,26 @@ class Statistical
             return Functions::DIV0();
         }
 
-        $bestFitLinear = \PhpOffice\PhpSpreadsheet\Shared\trend\trend::calculate(\PhpOffice\PhpSpreadsheet\Shared\trend\trend::TREND_LINEAR, $yValues, $xValues);
+        $bestFitLinear = Trend::calculate(Trend::TREND_LINEAR, $yValues, $xValues);
 
         return $bestFitLinear->getIntersect();
     }
 
     /**
-     * KURT
+     * KURT.
      *
      * Returns the kurtosis of a data set. Kurtosis characterizes the relative peakedness
      * or flatness of a distribution compared with the normal distribution. Positive
      * kurtosis indicates a relatively peaked distribution. Negative kurtosis indicates a
      * relatively flat distribution.
      *
-     * @param    array    Data Series
-     * @return    float
+     * @param array ...$args Data Series
+     *
+     * @return float
      */
-    public static function KURT()
+    public static function KURT(...$args)
     {
-        $aArgs = Functions::flattenArrayIndexed(func_get_args());
+        $aArgs = Functions::flattenArrayIndexed($args);
         $mean = self::AVERAGE($aArgs);
         $stdDev = self::STDEV($aArgs);
 
@@ -1928,7 +1798,7 @@ class Statistical
     }
 
     /**
-     * LARGE
+     * LARGE.
      *
      * Returns the nth largest value in a data set. You can use this function to
      *        select a value based on its relative standing.
@@ -1937,13 +1807,15 @@ class Statistical
      *        LARGE(value1[,value2[, ...]],entry)
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @param    int            $entry            Position (ordered from the largest) in the array or range of data to return
-     * @return    float
+     *
+     * @param mixed $args Data values
+     * @param int $entry Position (ordered from the largest) in the array or range of data to return
+     *
+     * @return float
      */
-    public static function LARGE()
+    public static function LARGE(...$args)
     {
-        $aArgs = Functions::flattenArray(func_get_args());
+        $aArgs = Functions::flattenArray($args);
 
         // Calculate
         $entry = floor(array_pop($aArgs));
@@ -1970,22 +1842,23 @@ class Statistical
     }
 
     /**
-     * LINEST
+     * LINEST.
      *
      * Calculates the statistics for a line by using the "least squares" method to calculate a straight line that best fits your data,
      *        and then returns an array that describes the line.
      *
-     * @param    array of mixed        Data Series Y
-     * @param    array of mixed        Data Series X
-     * @param    bool                A logical value specifying whether to force the intersect to equal 0.
-     * @param    bool                A logical value specifying whether to return additional regression statistics.
-     * @return    array
+     * @param mixed[] $yValues Data Series Y
+     * @param null|mixed[] $xValues Data Series X
+     * @param bool $const a logical value specifying whether to force the intersect to equal 0
+     * @param bool $stats a logical value specifying whether to return additional regression statistics
+     *
+     * @return array
      */
     public static function LINEST($yValues, $xValues = null, $const = true, $stats = false)
     {
-        $const = (is_null($const)) ? true : (boolean) Functions::flattenSingleValue($const);
-        $stats = (is_null($stats)) ? false : (boolean) Functions::flattenSingleValue($stats);
-        if (is_null($xValues)) {
+        $const = ($const === null) ? true : (bool) Functions::flattenSingleValue($const);
+        $stats = ($stats === null) ? false : (bool) Functions::flattenSingleValue($stats);
+        if ($xValues === null) {
             $xValues = range(1, count(Functions::flattenArray($yValues)));
         }
 
@@ -2001,7 +1874,7 @@ class Statistical
             return 0;
         }
 
-        $bestFitLinear = \PhpOffice\PhpSpreadsheet\Shared\trend\trend::calculate(\PhpOffice\PhpSpreadsheet\Shared\trend\trend::TREND_LINEAR, $yValues, $xValues, $const);
+        $bestFitLinear = Trend::calculate(Trend::TREND_LINEAR, $yValues, $xValues, $const);
         if ($stats) {
             return [
                 [
@@ -2019,31 +1892,32 @@ class Statistical
                     $bestFitLinear->getSSResiduals(),
                 ],
             ];
-        } else {
-            return [
+        }
+
+        return [
                 $bestFitLinear->getSlope(),
                 $bestFitLinear->getIntersect(),
             ];
-        }
     }
 
     /**
-     * LOGEST
+     * LOGEST.
      *
      * Calculates an exponential curve that best fits the X and Y data series,
      *        and then returns an array that describes the line.
      *
-     * @param    array of mixed        Data Series Y
-     * @param    array of mixed        Data Series X
-     * @param    bool                A logical value specifying whether to force the intersect to equal 0.
-     * @param    bool                A logical value specifying whether to return additional regression statistics.
-     * @return    array
+     * @param mixed[] $yValues Data Series Y
+     * @param null|mixed[] $xValues Data Series X
+     * @param bool $const a logical value specifying whether to force the intersect to equal 0
+     * @param bool $stats a logical value specifying whether to return additional regression statistics
+     *
+     * @return array
      */
     public static function LOGEST($yValues, $xValues = null, $const = true, $stats = false)
     {
-        $const = (is_null($const)) ? true : (boolean) Functions::flattenSingleValue($const);
-        $stats = (is_null($stats)) ? false : (boolean) Functions::flattenSingleValue($stats);
-        if (is_null($xValues)) {
+        $const = ($const === null) ? true : (bool) Functions::flattenSingleValue($const);
+        $stats = ($stats === null) ? false : (bool) Functions::flattenSingleValue($stats);
+        if ($xValues === null) {
             $xValues = range(1, count(Functions::flattenArray($yValues)));
         }
 
@@ -2065,7 +1939,7 @@ class Statistical
             return 1;
         }
 
-        $bestFitExponential = \PhpOffice\PhpSpreadsheet\Shared\trend\trend::calculate(\PhpOffice\PhpSpreadsheet\Shared\trend\trend::TREND_EXPONENTIAL, $yValues, $xValues, $const);
+        $bestFitExponential = Trend::calculate(Trend::TREND_EXPONENTIAL, $yValues, $xValues, $const);
         if ($stats) {
             return [
                 [
@@ -2083,23 +1957,24 @@ class Statistical
                     $bestFitExponential->getSSResiduals(),
                 ],
             ];
-        } else {
-            return [
+        }
+
+        return [
                 $bestFitExponential->getSlope(),
                 $bestFitExponential->getIntersect(),
             ];
-        }
     }
 
     /**
-     * LOGINV
+     * LOGINV.
      *
      * Returns the inverse of the normal cumulative distribution
      *
-     * @param    float        $probability
-     * @param    float        $mean
-     * @param    float        $stdDev
-     * @return    float
+     * @param float $probability
+     * @param float $mean
+     * @param float $stdDev
+     *
+     * @return float
      *
      * @todo    Try implementing P J Acklam's refinement algorithm for greater
      *            accuracy if I can get my head round the mathematics
@@ -2123,15 +1998,16 @@ class Statistical
     }
 
     /**
-     * LOGNORMDIST
+     * LOGNORMDIST.
      *
      * Returns the cumulative lognormal distribution of x, where ln(x) is normally distributed
      * with parameters mean and standard_dev.
      *
-     * @param    float        $value
-     * @param    float        $mean
-     * @param    float        $stdDev
-     * @return    float
+     * @param float $value
+     * @param float $mean
+     * @param float $stdDev
+     *
+     * @return float
      */
     public static function LOGNORMDIST($value, $mean, $stdDev)
     {
@@ -2151,7 +2027,7 @@ class Statistical
     }
 
     /**
-     * MAX
+     * MAX.
      *
      * MAX returns the value of the element of the values passed that has the highest value,
      *        with negative numbers considered smaller than positive numbers.
@@ -2160,25 +2036,27 @@ class Statistical
      *        MAX(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    float
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return float
      */
-    public static function MAX()
+    public static function MAX(...$args)
     {
         $returnValue = null;
 
         // Loop through arguments
-        $aArgs = Functions::flattenArray(func_get_args());
+        $aArgs = Functions::flattenArray($args);
         foreach ($aArgs as $arg) {
             // Is it a numeric value?
             if ((is_numeric($arg)) && (!is_string($arg))) {
-                if ((is_null($returnValue)) || ($arg > $returnValue)) {
+                if (($returnValue === null) || ($arg > $returnValue)) {
                     $returnValue = $arg;
                 }
             }
         }
 
-        if (is_null($returnValue)) {
+        if ($returnValue === null) {
             return 0;
         }
 
@@ -2186,7 +2064,7 @@ class Statistical
     }
 
     /**
-     * MAXA
+     * MAXA.
      *
      * Returns the greatest value in a list of arguments, including numbers, text, and logical values
      *
@@ -2194,30 +2072,32 @@ class Statistical
      *        MAXA(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    float
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return float
      */
-    public static function MAXA()
+    public static function MAXA(...$args)
     {
         $returnValue = null;
 
         // Loop through arguments
-        $aArgs = Functions::flattenArray(func_get_args());
+        $aArgs = Functions::flattenArray($args);
         foreach ($aArgs as $arg) {
             // Is it a numeric value?
             if ((is_numeric($arg)) || (is_bool($arg)) || ((is_string($arg) && ($arg != '')))) {
                 if (is_bool($arg)) {
-                    $arg = (integer) $arg;
+                    $arg = (int) $arg;
                 } elseif (is_string($arg)) {
                     $arg = 0;
                 }
-                if ((is_null($returnValue)) || ($arg > $returnValue)) {
+                if (($returnValue === null) || ($arg > $returnValue)) {
                     $returnValue = $arg;
                 }
             }
         }
 
-        if (is_null($returnValue)) {
+        if ($returnValue === null) {
             return 0;
         }
 
@@ -2225,7 +2105,7 @@ class Statistical
     }
 
     /**
-     * MAXIF
+     * MAXIF.
      *
      * Counts the maximum value within a range of cells that contain numbers within the list of arguments
      *
@@ -2233,9 +2113,12 @@ class Statistical
      *        MAXIF(value1[,value2[, ...]],condition)
      *
      * @category Mathematical and Trigonometric Functions
-     * @param    mixed        $arg,...        Data values
-     * @param    string        $condition        The criteria that defines which cells will be checked.
-     * @return    float
+     *
+     * @param mixed $aArgs Data values
+     * @param string $condition the criteria that defines which cells will be checked
+     * @param mixed $sumArgs
+     *
+     * @return float
      */
     public static function MAXIF($aArgs, $condition, $sumArgs = [])
     {
@@ -2250,11 +2133,11 @@ class Statistical
         // Loop through arguments
         foreach ($aArgs as $key => $arg) {
             if (!is_numeric($arg)) {
-                $arg = \PhpOffice\PhpSpreadsheet\Calculation::wrapResult(strtoupper($arg));
+                $arg = Calculation::wrapResult(strtoupper($arg));
             }
             $testCondition = '=' . $arg . $condition;
-            if (\PhpOffice\PhpSpreadsheet\Calculation::getInstance()->_calculateFormulaValue($testCondition)) {
-                if ((is_null($returnValue)) || ($arg > $returnValue)) {
+            if (Calculation::getInstance()->_calculateFormulaValue($testCondition)) {
+                if (($returnValue === null) || ($arg > $returnValue)) {
                     $returnValue = $arg;
                 }
             }
@@ -2264,7 +2147,7 @@ class Statistical
     }
 
     /**
-     * MEDIAN
+     * MEDIAN.
      *
      * Returns the median of the given numbers. The median is the number in the middle of a set of numbers.
      *
@@ -2272,16 +2155,18 @@ class Statistical
      *        MEDIAN(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    float
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return float
      */
-    public static function MEDIAN()
+    public static function MEDIAN(...$args)
     {
         $returnValue = Functions::NAN();
 
         $mArgs = [];
         // Loop through arguments
-        $aArgs = Functions::flattenArray(func_get_args());
+        $aArgs = Functions::flattenArray($args);
         foreach ($aArgs as $arg) {
             // Is it a numeric value?
             if ((is_numeric($arg)) && (!is_string($arg))) {
@@ -2305,7 +2190,7 @@ class Statistical
     }
 
     /**
-     * MIN
+     * MIN.
      *
      * MIN returns the value of the element of the values passed that has the smallest value,
      *        with negative numbers considered smaller than positive numbers.
@@ -2314,25 +2199,27 @@ class Statistical
      *        MIN(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    float
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return float
      */
-    public static function MIN()
+    public static function MIN(...$args)
     {
         $returnValue = null;
 
         // Loop through arguments
-        $aArgs = Functions::flattenArray(func_get_args());
+        $aArgs = Functions::flattenArray($args);
         foreach ($aArgs as $arg) {
             // Is it a numeric value?
             if ((is_numeric($arg)) && (!is_string($arg))) {
-                if ((is_null($returnValue)) || ($arg < $returnValue)) {
+                if (($returnValue === null) || ($arg < $returnValue)) {
                     $returnValue = $arg;
                 }
             }
         }
 
-        if (is_null($returnValue)) {
+        if ($returnValue === null) {
             return 0;
         }
 
@@ -2340,7 +2227,7 @@ class Statistical
     }
 
     /**
-     * MINA
+     * MINA.
      *
      * Returns the smallest value in a list of arguments, including numbers, text, and logical values
      *
@@ -2348,30 +2235,32 @@ class Statistical
      *        MINA(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    float
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return float
      */
-    public static function MINA()
+    public static function MINA(...$args)
     {
         $returnValue = null;
 
         // Loop through arguments
-        $aArgs = Functions::flattenArray(func_get_args());
+        $aArgs = Functions::flattenArray($args);
         foreach ($aArgs as $arg) {
             // Is it a numeric value?
             if ((is_numeric($arg)) || (is_bool($arg)) || ((is_string($arg) && ($arg != '')))) {
                 if (is_bool($arg)) {
-                    $arg = (integer) $arg;
+                    $arg = (int) $arg;
                 } elseif (is_string($arg)) {
                     $arg = 0;
                 }
-                if ((is_null($returnValue)) || ($arg < $returnValue)) {
+                if (($returnValue === null) || ($arg < $returnValue)) {
                     $returnValue = $arg;
                 }
             }
         }
 
-        if (is_null($returnValue)) {
+        if ($returnValue === null) {
             return 0;
         }
 
@@ -2379,7 +2268,7 @@ class Statistical
     }
 
     /**
-     * MINIF
+     * MINIF.
      *
      * Returns the minimum value within a range of cells that contain numbers within the list of arguments
      *
@@ -2387,9 +2276,12 @@ class Statistical
      *        MINIF(value1[,value2[, ...]],condition)
      *
      * @category Mathematical and Trigonometric Functions
-     * @param    mixed        $arg,...        Data values
-     * @param    string        $condition        The criteria that defines which cells will be checked.
-     * @return    float
+     *
+     * @param mixed $aArgs Data values
+     * @param string $condition the criteria that defines which cells will be checked
+     * @param mixed $sumArgs
+     *
+     * @return float
      */
     public static function MINIF($aArgs, $condition, $sumArgs = [])
     {
@@ -2404,11 +2296,11 @@ class Statistical
         // Loop through arguments
         foreach ($aArgs as $key => $arg) {
             if (!is_numeric($arg)) {
-                $arg = \PhpOffice\PhpSpreadsheet\Calculation::wrapResult(strtoupper($arg));
+                $arg = Calculation::wrapResult(strtoupper($arg));
             }
             $testCondition = '=' . $arg . $condition;
-            if (\PhpOffice\PhpSpreadsheet\Calculation::getInstance()->_calculateFormulaValue($testCondition)) {
-                if ((is_null($returnValue)) || ($arg < $returnValue)) {
+            if (Calculation::getInstance()->_calculateFormulaValue($testCondition)) {
+                if (($returnValue === null) || ($arg < $returnValue)) {
                     $returnValue = $arg;
                 }
             }
@@ -2430,6 +2322,7 @@ class Statistical
                 if ((string) $value['value'] == (string) $datum) {
                     ++$frequencyArray[$key]['frequency'];
                     $found = true;
+
                     break;
                 }
             }
@@ -2455,7 +2348,7 @@ class Statistical
     }
 
     /**
-     * MODE
+     * MODE.
      *
      * Returns the most frequently occurring, or repetitive, value in an array or range of data
      *
@@ -2463,15 +2356,17 @@ class Statistical
      *        MODE(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    float
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return float
      */
-    public static function MODE()
+    public static function MODE(...$args)
     {
         $returnValue = Functions::NA();
 
         // Loop through arguments
-        $aArgs = Functions::flattenArray(func_get_args());
+        $aArgs = Functions::flattenArray($args);
 
         $mArgs = [];
         foreach ($aArgs as $arg) {
@@ -2489,7 +2384,7 @@ class Statistical
     }
 
     /**
-     * NEGBINOMDIST
+     * NEGBINOMDIST.
      *
      * Returns the negative binomial distribution. NEGBINOMDIST returns the probability that
      *        there will be number_f failures before the number_s-th success, when the constant
@@ -2497,10 +2392,11 @@ class Statistical
      *        distribution, except that the number of successes is fixed, and the number of trials is
      *        variable. Like the binomial, trials are assumed to be independent.
      *
-     * @param    float        $failures        Number of Failures
-     * @param    float        $successes        Threshold number of Successes
-     * @param    float        $probability    Probability of success on each trial
-     * @return    float
+     * @param float $failures Number of Failures
+     * @param float $successes Threshold number of Successes
+     * @param float $probability Probability of success on each trial
+     *
+     * @return float
      */
     public static function NEGBINOMDIST($failures, $successes, $probability)
     {
@@ -2527,17 +2423,18 @@ class Statistical
     }
 
     /**
-     * NORMDIST
+     * NORMDIST.
      *
      * Returns the normal distribution for the specified mean and standard deviation. This
      * function has a very wide range of applications in statistics, including hypothesis
      * testing.
      *
-     * @param    float        $value
-     * @param    float        $mean        Mean Value
-     * @param    float        $stdDev        Standard Deviation
-     * @param    bool        $cumulative
-     * @return    float
+     * @param float $value
+     * @param float $mean Mean Value
+     * @param float $stdDev Standard Deviation
+     * @param bool $cumulative
+     *
+     * @return float
      */
     public static function NORMDIST($value, $mean, $stdDev, $cumulative)
     {
@@ -2552,9 +2449,9 @@ class Statistical
             if ((is_numeric($cumulative)) || (is_bool($cumulative))) {
                 if ($cumulative) {
                     return 0.5 * (1 + Engineering::erfVal(($value - $mean) / ($stdDev * sqrt(2))));
-                } else {
-                    return (1 / (SQRT2PI * $stdDev)) * exp(0 - (pow($value - $mean, 2) / (2 * ($stdDev * $stdDev))));
                 }
+
+                return (1 / (self::SQRT2PI * $stdDev)) * exp(0 - (pow($value - $mean, 2) / (2 * ($stdDev * $stdDev))));
             }
         }
 
@@ -2562,14 +2459,15 @@ class Statistical
     }
 
     /**
-     * NORMINV
+     * NORMINV.
      *
      * Returns the inverse of the normal cumulative distribution for the specified mean and standard deviation.
      *
-     * @param    float        $probability
-     * @param    float        $mean        Mean Value
-     * @param    float        $stdDev        Standard Deviation
-     * @return    float
+     * @param float $probability
+     * @param float $mean Mean Value
+     * @param float $stdDev Standard Deviation
+     *
+     * @return float
      */
     public static function NORMINV($probability, $mean, $stdDev)
     {
@@ -2592,14 +2490,15 @@ class Statistical
     }
 
     /**
-     * NORMSDIST
+     * NORMSDIST.
      *
      * Returns the standard normal cumulative distribution function. The distribution has
      * a mean of 0 (zero) and a standard deviation of one. Use this function in place of a
      * table of standard normal curve areas.
      *
-     * @param    float        $value
-     * @return    float
+     * @param float $value
+     *
+     * @return float
      */
     public static function NORMSDIST($value)
     {
@@ -2609,12 +2508,13 @@ class Statistical
     }
 
     /**
-     * NORMSINV
+     * NORMSINV.
      *
      * Returns the inverse of the standard normal cumulative distribution
      *
-     * @param    float        $value
-     * @return    float
+     * @param float $value
+     *
+     * @return float
      */
     public static function NORMSINV($value)
     {
@@ -2622,7 +2522,7 @@ class Statistical
     }
 
     /**
-     * PERCENTILE
+     * PERCENTILE.
      *
      * Returns the nth percentile of values in a range..
      *
@@ -2630,13 +2530,15 @@ class Statistical
      *        PERCENTILE(value1[,value2[, ...]],entry)
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @param    float        $entry            Percentile value in the range 0..1, inclusive.
-     * @return    float
+     *
+     * @param mixed $args Data values
+     * @param float $entry Percentile value in the range 0..1, inclusive.
+     *
+     * @return float
      */
-    public static function PERCENTILE()
+    public static function PERCENTILE(...$args)
     {
-        $aArgs = Functions::flattenArray(func_get_args());
+        $aArgs = Functions::flattenArray($args);
 
         // Calculate
         $entry = array_pop($aArgs);
@@ -2660,12 +2562,11 @@ class Statistical
                 $iBase = floor($index);
                 if ($index == $iBase) {
                     return $mArgs[$index];
-                } else {
-                    $iNext = $iBase + 1;
-                    $iProportion = $index - $iBase;
-
-                    return $mArgs[$iBase] + (($mArgs[$iNext] - $mArgs[$iBase]) * $iProportion);
                 }
+                $iNext = $iBase + 1;
+                $iProportion = $index - $iBase;
+
+                return $mArgs[$iBase] + (($mArgs[$iNext] - $mArgs[$iBase]) * $iProportion);
             }
         }
 
@@ -2673,20 +2574,21 @@ class Statistical
     }
 
     /**
-     * PERCENTRANK
+     * PERCENTRANK.
      *
      * Returns the rank of a value in a data set as a percentage of the data set.
      *
-     * @param    array of number        An array of, or a reference to, a list of numbers.
-     * @param    number                The number whose rank you want to find.
-     * @param    number                The number of significant digits for the returned percentage value.
-     * @return    float
+     * @param float[] $valueSet An array of, or a reference to, a list of numbers
+     * @param int $value the number whose rank you want to find
+     * @param int $significance the number of significant digits for the returned percentage value
+     *
+     * @return float
      */
     public static function PERCENTRANK($valueSet, $value, $significance = 3)
     {
         $valueSet = Functions::flattenArray($valueSet);
         $value = Functions::flattenSingleValue($value);
-        $significance = (is_null($significance)) ? 3 : (integer) Functions::flattenSingleValue($significance);
+        $significance = ($significance === null) ? 3 : (int) Functions::flattenSingleValue($significance);
 
         foreach ($valueSet as $key => $valueEntry) {
             if (!is_numeric($valueEntry)) {
@@ -2719,7 +2621,7 @@ class Statistical
     }
 
     /**
-     * PERMUT
+     * PERMUT.
      *
      * Returns the number of permutations for a given number of objects that can be
      *        selected from number objects. A permutation is any set or subset of objects or
@@ -2727,9 +2629,10 @@ class Statistical
      *        combinations, for which the internal order is not significant. Use this function
      *        for lottery-style probability calculations.
      *
-     * @param    int        $numObjs    Number of different objects
-     * @param    int        $numInSet    Number of objects in each permutation
-     * @return    int        Number of permutations
+     * @param int $numObjs Number of different objects
+     * @param int $numInSet Number of objects in each permutation
+     *
+     * @return int Number of permutations
      */
     public static function PERMUT($numObjs, $numInSet)
     {
@@ -2749,16 +2652,17 @@ class Statistical
     }
 
     /**
-     * POISSON
+     * POISSON.
      *
      * Returns the Poisson distribution. A common application of the Poisson distribution
      * is predicting the number of events over a specific time, such as the number of
      * cars arriving at a toll plaza in 1 minute.
      *
-     * @param    float        $value
-     * @param    float        $mean        Mean Value
-     * @param    bool        $cumulative
-     * @return    float
+     * @param float $value
+     * @param float $mean Mean Value
+     * @param bool $cumulative
+     *
+     * @return float
      */
     public static function POISSON($value, $mean, $cumulative)
     {
@@ -2772,14 +2676,15 @@ class Statistical
             if ((is_numeric($cumulative)) || (is_bool($cumulative))) {
                 if ($cumulative) {
                     $summer = 0;
-                    for ($i = 0; $i <= floor($value); ++$i) {
+                    $floor = floor($value);
+                    for ($i = 0; $i <= $floor; ++$i) {
                         $summer += pow($mean, $i) / MathTrig::FACT($i);
                     }
 
                     return exp(0 - $mean) * $summer;
-                } else {
-                    return (exp(0 - $mean) * pow($mean, $value)) / MathTrig::FACT($value);
                 }
+
+                return (exp(0 - $mean) * pow($mean, $value)) / MathTrig::FACT($value);
             }
         }
 
@@ -2787,7 +2692,7 @@ class Statistical
     }
 
     /**
-     * QUARTILE
+     * QUARTILE.
      *
      * Returns the quartile of a data set.
      *
@@ -2795,13 +2700,15 @@ class Statistical
      *        QUARTILE(value1[,value2[, ...]],entry)
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @param    int            $entry            Quartile value in the range 1..3, inclusive.
-     * @return    float
+     *
+     * @param mixed $args Data values
+     * @param int $entry Quartile value in the range 1..3, inclusive.
+     *
+     * @return float
      */
-    public static function QUARTILE()
+    public static function QUARTILE(...$args)
     {
-        $aArgs = Functions::flattenArray(func_get_args());
+        $aArgs = Functions::flattenArray($args);
 
         // Calculate
         $entry = floor(array_pop($aArgs));
@@ -2819,20 +2726,21 @@ class Statistical
     }
 
     /**
-     * RANK
+     * RANK.
      *
      * Returns the rank of a number in a list of numbers.
      *
-     * @param    number                The number whose rank you want to find.
-     * @param    array of number        An array of, or a reference to, a list of numbers.
-     * @param    mixed                Order to sort the values in the value set
-     * @return    float
+     * @param int $value the number whose rank you want to find
+     * @param float[] $valueSet An array of, or a reference to, a list of numbers
+     * @param int $order Order to sort the values in the value set
+     *
+     * @return float
      */
     public static function RANK($value, $valueSet, $order = 0)
     {
         $value = Functions::flattenSingleValue($value);
         $valueSet = Functions::flattenArray($valueSet);
-        $order = (is_null($order)) ? 0 : (integer) Functions::flattenSingleValue($order);
+        $order = ($order === null) ? 0 : (int) Functions::flattenSingleValue($order);
 
         foreach ($valueSet as $key => $valueEntry) {
             if (!is_numeric($valueEntry)) {
@@ -2854,13 +2762,14 @@ class Statistical
     }
 
     /**
-     * RSQ
+     * RSQ.
      *
      * Returns the square of the Pearson product moment correlation coefficient through data points in known_y's and known_x's.
      *
-     * @param    array of mixed        Data Series Y
-     * @param    array of mixed        Data Series X
-     * @return    float
+     * @param mixed[] $yValues Data Series Y
+     * @param mixed[] $xValues Data Series X
+     *
+     * @return float
      */
     public static function RSQ($yValues, $xValues)
     {
@@ -2876,25 +2785,26 @@ class Statistical
             return Functions::DIV0();
         }
 
-        $bestFitLinear = \PhpOffice\PhpSpreadsheet\Shared\trend\trend::calculate(\PhpOffice\PhpSpreadsheet\Shared\trend\trend::TREND_LINEAR, $yValues, $xValues);
+        $bestFitLinear = Trend::calculate(Trend::TREND_LINEAR, $yValues, $xValues);
 
         return $bestFitLinear->getGoodnessOfFit();
     }
 
     /**
-     * SKEW
+     * SKEW.
      *
      * Returns the skewness of a distribution. Skewness characterizes the degree of asymmetry
      * of a distribution around its mean. Positive skewness indicates a distribution with an
      * asymmetric tail extending toward more positive values. Negative skewness indicates a
      * distribution with an asymmetric tail extending toward more negative values.
      *
-     * @param    array    Data Series
-     * @return    float
+     * @param array ...$args Data Series
+     *
+     * @return float
      */
-    public static function SKEW()
+    public static function SKEW(...$args)
     {
-        $aArgs = Functions::flattenArrayIndexed(func_get_args());
+        $aArgs = Functions::flattenArrayIndexed($args);
         $mean = self::AVERAGE($aArgs);
         $stdDev = self::STDEV($aArgs);
 
@@ -2920,13 +2830,14 @@ class Statistical
     }
 
     /**
-     * SLOPE
+     * SLOPE.
      *
      * Returns the slope of the linear regression line through data points in known_y's and known_x's.
      *
-     * @param    array of mixed        Data Series Y
-     * @param    array of mixed        Data Series X
-     * @return    float
+     * @param mixed[] $yValues Data Series Y
+     * @param mixed[] $xValues Data Series X
+     *
+     * @return float
      */
     public static function SLOPE($yValues, $xValues)
     {
@@ -2942,13 +2853,13 @@ class Statistical
             return Functions::DIV0();
         }
 
-        $bestFitLinear = \PhpOffice\PhpSpreadsheet\Shared\trend\trend::calculate(\PhpOffice\PhpSpreadsheet\Shared\trend\trend::TREND_LINEAR, $yValues, $xValues);
+        $bestFitLinear = Trend::calculate(Trend::TREND_LINEAR, $yValues, $xValues);
 
         return $bestFitLinear->getSlope();
     }
 
     /**
-     * SMALL
+     * SMALL.
      *
      * Returns the nth smallest value in a data set. You can use this function to
      *        select a value based on its relative standing.
@@ -2957,13 +2868,15 @@ class Statistical
      *        SMALL(value1[,value2[, ...]],entry)
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @param    int            $entry            Position (ordered from the smallest) in the array or range of data to return
-     * @return    float
+     *
+     * @param mixed $args Data values
+     * @param int $entry Position (ordered from the smallest) in the array or range of data to return
+     *
+     * @return float
      */
-    public static function SMALL()
+    public static function SMALL(...$args)
     {
-        $aArgs = Functions::flattenArray(func_get_args());
+        $aArgs = Functions::flattenArray($args);
 
         // Calculate
         $entry = array_pop($aArgs);
@@ -2990,14 +2903,15 @@ class Statistical
     }
 
     /**
-     * STANDARDIZE
+     * STANDARDIZE.
      *
      * Returns a normalized value from a distribution characterized by mean and standard_dev.
      *
-     * @param    float    $value        Value to normalize
-     * @param    float    $mean        Mean Value
-     * @param    float    $stdDev        Standard Deviation
-     * @return    float    Standardized value
+     * @param float $value Value to normalize
+     * @param float $mean Mean Value
+     * @param float $stdDev Standard Deviation
+     *
+     * @return float Standardized value
      */
     public static function STANDARDIZE($value, $mean, $stdDev)
     {
@@ -3017,7 +2931,7 @@ class Statistical
     }
 
     /**
-     * STDEV
+     * STDEV.
      *
      * Estimates standard deviation based on a sample. The standard deviation is a measure of how
      *        widely values are dispersed from the average value (the mean).
@@ -3026,27 +2940,29 @@ class Statistical
      *        STDEV(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    float
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return float
      */
-    public static function STDEV()
+    public static function STDEV(...$args)
     {
-        $aArgs = Functions::flattenArrayIndexed(func_get_args());
+        $aArgs = Functions::flattenArrayIndexed($args);
 
         // Return value
         $returnValue = null;
 
         $aMean = self::AVERAGE($aArgs);
-        if (!is_null($aMean)) {
+        if ($aMean !== null) {
             $aCount = -1;
             foreach ($aArgs as $k => $arg) {
                 if ((is_bool($arg)) &&
                     ((!Functions::isCellValue($k)) || (Functions::getCompatibilityMode() == Functions::COMPATIBILITY_OPENOFFICE))) {
-                    $arg = (integer) $arg;
+                    $arg = (int) $arg;
                 }
                 // Is it a numeric value?
                 if ((is_numeric($arg)) && (!is_string($arg))) {
-                    if (is_null($returnValue)) {
+                    if ($returnValue === null) {
                         $returnValue = pow(($arg - $aMean), 2);
                     } else {
                         $returnValue += pow(($arg - $aMean), 2);
@@ -3065,7 +2981,7 @@ class Statistical
     }
 
     /**
-     * STDEVA
+     * STDEVA.
      *
      * Estimates standard deviation based on a sample, including numbers, text, and logical values
      *
@@ -3073,17 +2989,19 @@ class Statistical
      *        STDEVA(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    float
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return float
      */
-    public static function STDEVA()
+    public static function STDEVA(...$args)
     {
-        $aArgs = Functions::flattenArrayIndexed(func_get_args());
+        $aArgs = Functions::flattenArrayIndexed($args);
 
         $returnValue = null;
 
         $aMean = self::AVERAGEA($aArgs);
-        if (!is_null($aMean)) {
+        if ($aMean !== null) {
             $aCount = -1;
             foreach ($aArgs as $k => $arg) {
                 if ((is_bool($arg)) &&
@@ -3092,11 +3010,11 @@ class Statistical
                     // Is it a numeric value?
                     if ((is_numeric($arg)) || (is_bool($arg)) || ((is_string($arg) & ($arg != '')))) {
                         if (is_bool($arg)) {
-                            $arg = (integer) $arg;
+                            $arg = (int) $arg;
                         } elseif (is_string($arg)) {
                             $arg = 0;
                         }
-                        if (is_null($returnValue)) {
+                        if ($returnValue === null) {
                             $returnValue = pow(($arg - $aMean), 2);
                         } else {
                             $returnValue += pow(($arg - $aMean), 2);
@@ -3115,7 +3033,7 @@ class Statistical
     }
 
     /**
-     * STDEVP
+     * STDEVP.
      *
      * Calculates standard deviation based on the entire population
      *
@@ -3123,26 +3041,28 @@ class Statistical
      *        STDEVP(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    float
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return float
      */
-    public static function STDEVP()
+    public static function STDEVP(...$args)
     {
-        $aArgs = Functions::flattenArrayIndexed(func_get_args());
+        $aArgs = Functions::flattenArrayIndexed($args);
 
         $returnValue = null;
 
         $aMean = self::AVERAGE($aArgs);
-        if (!is_null($aMean)) {
+        if ($aMean !== null) {
             $aCount = 0;
             foreach ($aArgs as $k => $arg) {
                 if ((is_bool($arg)) &&
                     ((!Functions::isCellValue($k)) || (Functions::getCompatibilityMode() == Functions::COMPATIBILITY_OPENOFFICE))) {
-                    $arg = (integer) $arg;
+                    $arg = (int) $arg;
                 }
                 // Is it a numeric value?
                 if ((is_numeric($arg)) && (!is_string($arg))) {
-                    if (is_null($returnValue)) {
+                    if ($returnValue === null) {
                         $returnValue = pow(($arg - $aMean), 2);
                     } else {
                         $returnValue += pow(($arg - $aMean), 2);
@@ -3160,7 +3080,7 @@ class Statistical
     }
 
     /**
-     * STDEVPA
+     * STDEVPA.
      *
      * Calculates standard deviation based on the entire population, including numbers, text, and logical values
      *
@@ -3168,17 +3088,19 @@ class Statistical
      *        STDEVPA(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    float
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return float
      */
-    public static function STDEVPA()
+    public static function STDEVPA(...$args)
     {
-        $aArgs = Functions::flattenArrayIndexed(func_get_args());
+        $aArgs = Functions::flattenArrayIndexed($args);
 
         $returnValue = null;
 
         $aMean = self::AVERAGEA($aArgs);
-        if (!is_null($aMean)) {
+        if ($aMean !== null) {
             $aCount = 0;
             foreach ($aArgs as $k => $arg) {
                 if ((is_bool($arg)) &&
@@ -3187,11 +3109,11 @@ class Statistical
                     // Is it a numeric value?
                     if ((is_numeric($arg)) || (is_bool($arg)) || ((is_string($arg) & ($arg != '')))) {
                         if (is_bool($arg)) {
-                            $arg = (integer) $arg;
+                            $arg = (int) $arg;
                         } elseif (is_string($arg)) {
                             $arg = 0;
                         }
-                        if (is_null($returnValue)) {
+                        if ($returnValue === null) {
                             $returnValue = pow(($arg - $aMean), 2);
                         } else {
                             $returnValue += pow(($arg - $aMean), 2);
@@ -3210,13 +3132,14 @@ class Statistical
     }
 
     /**
-     * STEYX
+     * STEYX.
      *
      * Returns the standard error of the predicted y-value for each x in the regression.
      *
-     * @param    array of mixed        Data Series Y
-     * @param    array of mixed        Data Series X
-     * @return    float
+     * @param mixed[] $yValues Data Series Y
+     * @param mixed[] $xValues Data Series X
+     *
+     * @return float
      */
     public static function STEYX($yValues, $xValues)
     {
@@ -3232,20 +3155,21 @@ class Statistical
             return Functions::DIV0();
         }
 
-        $bestFitLinear = \PhpOffice\PhpSpreadsheet\Shared\trend\trend::calculate(\PhpOffice\PhpSpreadsheet\Shared\trend\trend::TREND_LINEAR, $yValues, $xValues);
+        $bestFitLinear = Trend::calculate(Trend::TREND_LINEAR, $yValues, $xValues);
 
         return $bestFitLinear->getStdevOfResiduals();
     }
 
     /**
-     * TDIST
+     * TDIST.
      *
      * Returns the probability of Student's T distribution.
      *
-     * @param    float        $value            Value for the function
-     * @param    float        $degrees        degrees of freedom
-     * @param    float        $tails            number of tails (1 or 2)
-     * @return    float
+     * @param float $value Value for the function
+     * @param float $degrees degrees of freedom
+     * @param float $tails number of tails (1 or 2)
+     *
+     * @return float
      */
     public static function TDIST($value, $degrees, $tails)
     {
@@ -3288,27 +3212,28 @@ class Statistical
             }
             $tsum *= $ts;
             if (($degrees % 2) == 1) {
-                $tsum = M_2DIVPI * ($tsum + $ttheta);
+                $tsum = Functions::M_2DIVPI * ($tsum + $ttheta);
             }
             $tValue = 0.5 * (1 + $tsum);
             if ($tails == 1) {
                 return 1 - abs($tValue);
-            } else {
-                return 1 - abs((1 - $tValue) - $tValue);
             }
+
+            return 1 - abs((1 - $tValue) - $tValue);
         }
 
         return Functions::VALUE();
     }
 
     /**
-     * TINV
+     * TINV.
      *
      * Returns the one-tailed probability of the chi-squared distribution.
      *
-     * @param    float        $probability    Probability for the function
-     * @param    float        $degrees        degrees of freedom
-     * @return    float
+     * @param float $probability Probability for the function
+     * @param float $degrees degrees of freedom
+     *
+     * @return float
      */
     public static function TINV($probability, $degrees)
     {
@@ -3323,7 +3248,7 @@ class Statistical
             $dx = 1;
             $i = 0;
 
-            while ((abs($dx) > PRECISION) && ($i++ < MAX_ITERATIONS)) {
+            while ((abs($dx) > Functions::PRECISION) && ($i++ < self::MAX_ITERATIONS)) {
                 // Apply Newton-Raphson step
                 $result = self::TDIST($x, $degrees, 2);
                 $error = $result - $probability;
@@ -3348,7 +3273,7 @@ class Statistical
                 }
                 $x = $xNew;
             }
-            if ($i == MAX_ITERATIONS) {
+            if ($i == self::MAX_ITERATIONS) {
                 return Functions::NA();
             }
 
@@ -3359,24 +3284,25 @@ class Statistical
     }
 
     /**
-     * TREND
+     * TREND.
      *
      * Returns values along a linear Trend
      *
-     * @param    array of mixed        Data Series Y
-     * @param    array of mixed        Data Series X
-     * @param    array of mixed        Values of X for which we want to find Y
-     * @param    bool                A logical value specifying whether to force the intersect to equal 0.
-     * @return    array of float
+     * @param mixed[] $yValues Data Series Y
+     * @param mixed[] $xValues Data Series X
+     * @param mixed[] $newValues Values of X for which we want to find Y
+     * @param bool $const a logical value specifying whether to force the intersect to equal 0
+     *
+     * @return array of float
      */
     public static function TREND($yValues, $xValues = [], $newValues = [], $const = true)
     {
         $yValues = Functions::flattenArray($yValues);
         $xValues = Functions::flattenArray($xValues);
         $newValues = Functions::flattenArray($newValues);
-        $const = (is_null($const)) ? true : (boolean) Functions::flattenSingleValue($const);
+        $const = ($const === null) ? true : (bool) Functions::flattenSingleValue($const);
 
-        $bestFitLinear = \PhpOffice\PhpSpreadsheet\Shared\trend\trend::calculate(\PhpOffice\PhpSpreadsheet\Shared\trend\trend::TREND_LINEAR, $yValues, $xValues, $const);
+        $bestFitLinear = Trend::calculate(Trend::TREND_LINEAR, $yValues, $xValues, $const);
         if (empty($newValues)) {
             $newValues = $bestFitLinear->getXValues();
         }
@@ -3390,7 +3316,7 @@ class Statistical
     }
 
     /**
-     * TRIMMEAN
+     * TRIMMEAN.
      *
      * Returns the mean of the interior of a data set. TRIMMEAN calculates the mean
      *        taken by excluding a percentage of data points from the top and bottom tails
@@ -3400,13 +3326,15 @@ class Statistical
      *        TRIMEAN(value1[,value2[, ...]], $discard)
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @param    float        $discard        Percentage to discard
-     * @return    float
+     *
+     * @param mixed $args Data values
+     * @param float $discard Percentage to discard
+     *
+     * @return float
      */
-    public static function TRIMMEAN()
+    public static function TRIMMEAN(...$args)
     {
-        $aArgs = Functions::flattenArray(func_get_args());
+        $aArgs = Functions::flattenArray($args);
 
         // Calculate
         $percent = array_pop($aArgs);
@@ -3436,7 +3364,7 @@ class Statistical
     }
 
     /**
-     * VARFunc
+     * VARFunc.
      *
      * Estimates variance based on a sample.
      *
@@ -3444,21 +3372,23 @@ class Statistical
      *        VAR(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    float
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return float
      */
-    public static function VARFunc()
+    public static function VARFunc(...$args)
     {
         $returnValue = Functions::DIV0();
 
         $summerA = $summerB = 0;
 
         // Loop through arguments
-        $aArgs = Functions::flattenArray(func_get_args());
+        $aArgs = Functions::flattenArray($args);
         $aCount = 0;
         foreach ($aArgs as $arg) {
             if (is_bool($arg)) {
-                $arg = (integer) $arg;
+                $arg = (int) $arg;
             }
             // Is it a numeric value?
             if ((is_numeric($arg)) && (!is_string($arg))) {
@@ -3478,7 +3408,7 @@ class Statistical
     }
 
     /**
-     * VARA
+     * VARA.
      *
      * Estimates variance based on a sample, including numbers, text, and logical values
      *
@@ -3486,17 +3416,19 @@ class Statistical
      *        VARA(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    float
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return float
      */
-    public static function VARA()
+    public static function VARA(...$args)
     {
         $returnValue = Functions::DIV0();
 
         $summerA = $summerB = 0;
 
         // Loop through arguments
-        $aArgs = Functions::flattenArrayIndexed(func_get_args());
+        $aArgs = Functions::flattenArrayIndexed($args);
         $aCount = 0;
         foreach ($aArgs as $k => $arg) {
             if ((is_string($arg)) &&
@@ -3508,7 +3440,7 @@ class Statistical
                 // Is it a numeric value?
                 if ((is_numeric($arg)) || (is_bool($arg)) || ((is_string($arg) & ($arg != '')))) {
                     if (is_bool($arg)) {
-                        $arg = (integer) $arg;
+                        $arg = (int) $arg;
                     } elseif (is_string($arg)) {
                         $arg = 0;
                     }
@@ -3529,7 +3461,7 @@ class Statistical
     }
 
     /**
-     * VARP
+     * VARP.
      *
      * Calculates variance based on the entire population
      *
@@ -3537,10 +3469,12 @@ class Statistical
      *        VARP(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    float
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return float
      */
-    public static function VARP()
+    public static function VARP(...$args)
     {
         // Return value
         $returnValue = Functions::DIV0();
@@ -3548,11 +3482,11 @@ class Statistical
         $summerA = $summerB = 0;
 
         // Loop through arguments
-        $aArgs = Functions::flattenArray(func_get_args());
+        $aArgs = Functions::flattenArray($args);
         $aCount = 0;
         foreach ($aArgs as $arg) {
             if (is_bool($arg)) {
-                $arg = (integer) $arg;
+                $arg = (int) $arg;
             }
             // Is it a numeric value?
             if ((is_numeric($arg)) && (!is_string($arg))) {
@@ -3572,7 +3506,7 @@ class Statistical
     }
 
     /**
-     * VARPA
+     * VARPA.
      *
      * Calculates variance based on the entire population, including numbers, text, and logical values
      *
@@ -3580,17 +3514,19 @@ class Statistical
      *        VARPA(value1[,value2[, ...]])
      *
      * @category Statistical Functions
-     * @param    mixed        $arg,...        Data values
-     * @return    float
+     *
+     * @param mixed ...$args Data values
+     *
+     * @return float
      */
-    public static function VARPA()
+    public static function VARPA(...$args)
     {
         $returnValue = Functions::DIV0();
 
         $summerA = $summerB = 0;
 
         // Loop through arguments
-        $aArgs = Functions::flattenArrayIndexed(func_get_args());
+        $aArgs = Functions::flattenArrayIndexed($args);
         $aCount = 0;
         foreach ($aArgs as $k => $arg) {
             if ((is_string($arg)) &&
@@ -3602,7 +3538,7 @@ class Statistical
                 // Is it a numeric value?
                 if ((is_numeric($arg)) || (is_bool($arg)) || ((is_string($arg) & ($arg != '')))) {
                     if (is_bool($arg)) {
-                        $arg = (integer) $arg;
+                        $arg = (int) $arg;
                     } elseif (is_string($arg)) {
                         $arg = 0;
                     }
@@ -3623,16 +3559,17 @@ class Statistical
     }
 
     /**
-     * WEIBULL
+     * WEIBULL.
      *
      * Returns the Weibull distribution. Use this distribution in reliability
      * analysis, such as calculating a device's mean time to failure.
      *
-     * @param    float        $value
-     * @param    float        $alpha        Alpha Parameter
-     * @param    float        $beta        Beta Parameter
-     * @param    bool        $cumulative
-     * @return    float
+     * @param float $value
+     * @param float $alpha Alpha Parameter
+     * @param float $beta Beta Parameter
+     * @param bool $cumulative
+     *
+     * @return float
      */
     public static function WEIBULL($value, $alpha, $beta, $cumulative)
     {
@@ -3647,9 +3584,9 @@ class Statistical
             if ((is_numeric($cumulative)) || (is_bool($cumulative))) {
                 if ($cumulative) {
                     return 1 - exp(0 - pow($value / $beta, $alpha));
-                } else {
-                    return ($alpha / pow($beta, $alpha)) * pow($value, $alpha - 1) * exp(0 - pow($value / $beta, $alpha));
                 }
+
+                return ($alpha / pow($beta, $alpha)) * pow($value, $alpha - 1) * exp(0 - pow($value / $beta, $alpha));
             }
         }
 
@@ -3657,15 +3594,16 @@ class Statistical
     }
 
     /**
-     * ZTEST
+     * ZTEST.
      *
      * Returns the Weibull distribution. Use this distribution in reliability
      * analysis, such as calculating a device's mean time to failure.
      *
-     * @param    float        $dataSet
-     * @param    float        $m0        Alpha Parameter
-     * @param    float        $sigma    Beta Parameter
-     * @return    float
+     * @param float $dataSet
+     * @param float $m0 Alpha Parameter
+     * @param float $sigma Beta Parameter
+     *
+     * @return float
      */
     public static function ZTEST($dataSet, $m0, $sigma = null)
     {
@@ -3673,11 +3611,11 @@ class Statistical
         $m0 = Functions::flattenSingleValue($m0);
         $sigma = Functions::flattenSingleValue($sigma);
 
-        if (is_null($sigma)) {
+        if ($sigma === null) {
             $sigma = self::STDEV($dataSet);
         }
         $n = count($dataSet);
 
-        return 1 - self::NORMSDIST((self::AVERAGE($dataSet) - $m0) / ($sigma / SQRT($n)));
+        return 1 - self::NORMSDIST((self::AVERAGE($dataSet) - $m0) / ($sigma / sqrt($n)));
     }
 }

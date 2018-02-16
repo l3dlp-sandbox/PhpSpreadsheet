@@ -3,29 +3,8 @@
 namespace PhpOffice\PhpSpreadsheet\Worksheet;
 
 /**
- * Copyright (c) 2006 - 2016 PhpSpreadsheet
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not,241 write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * @category   PhpSpreadsheet
- * @copyright  Copyright (c) 2006 - 2016 PhpSpreadsheet (https://github.com/PHPOffice/PhpSpreadsheet)
- * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt    LGPL
- * @version    ##VERSION##, ##DATE##
- *
  * <code>
- * Header/Footer Formatting Syntax taken from Office Open XML Part 4 - Markup Language Reference, page 1970:
+ * Header/Footer Formatting Syntax taken from Office Open XML Part 4 - Markup Language Reference, page 1970:.
  *
  * There are a number of formatting codes that can be written inline with the actual header / footer text, which
  * affect the formatting in the header or footer.
@@ -86,7 +65,7 @@ namespace PhpOffice\PhpSpreadsheet\Worksheet;
  */
 class HeaderFooter
 {
-    /* Header/footer image location */
+    // Header/footer image location
     const IMAGE_HEADER_LEFT = 'LH';
     const IMAGE_HEADER_CENTER = 'CH';
     const IMAGE_HEADER_RIGHT = 'RH';
@@ -95,91 +74,91 @@ class HeaderFooter
     const IMAGE_FOOTER_RIGHT = 'RF';
 
     /**
-     * OddHeader
+     * OddHeader.
      *
      * @var string
      */
     private $oddHeader = '';
 
     /**
-     * OddFooter
+     * OddFooter.
      *
      * @var string
      */
     private $oddFooter = '';
 
     /**
-     * EvenHeader
+     * EvenHeader.
      *
      * @var string
      */
     private $evenHeader = '';
 
     /**
-     * EvenFooter
+     * EvenFooter.
      *
      * @var string
      */
     private $evenFooter = '';
 
     /**
-     * FirstHeader
+     * FirstHeader.
      *
      * @var string
      */
     private $firstHeader = '';
 
     /**
-     * FirstFooter
+     * FirstFooter.
      *
      * @var string
      */
     private $firstFooter = '';
 
     /**
-     * Different header for Odd/Even, defaults to false
+     * Different header for Odd/Even, defaults to false.
      *
      * @var bool
      */
     private $differentOddEven = false;
 
     /**
-     * Different header for first page, defaults to false
+     * Different header for first page, defaults to false.
      *
      * @var bool
      */
     private $differentFirst = false;
 
     /**
-     * Scale with document, defaults to true
+     * Scale with document, defaults to true.
      *
      * @var bool
      */
     private $scaleWithDocument = true;
 
     /**
-     * Align with margins, defaults to true
+     * Align with margins, defaults to true.
      *
      * @var bool
      */
     private $alignWithMargins = true;
 
     /**
-     * Header/footer images
+     * Header/footer images.
      *
      * @var HeaderFooterDrawing[]
      */
     private $headerFooterImages = [];
 
     /**
-     * Create a new HeaderFooter
+     * Create a new HeaderFooter.
      */
     public function __construct()
     {
     }
 
     /**
-     * Get OddHeader
+     * Get OddHeader.
      *
      * @return string
      */
@@ -189,10 +168,11 @@ class HeaderFooter
     }
 
     /**
-     * Set OddHeader
+     * Set OddHeader.
      *
-     * @param   string $pValue
-     * @return  HeaderFooter
+     * @param string $pValue
+     *
+     * @return HeaderFooter
      */
     public function setOddHeader($pValue)
     {
@@ -202,7 +182,7 @@ class HeaderFooter
     }
 
     /**
-     * Get OddFooter
+     * Get OddFooter.
      *
      * @return string
      */
@@ -212,10 +192,11 @@ class HeaderFooter
     }
 
     /**
-     * Set OddFooter
+     * Set OddFooter.
      *
-     * @param   string  $pValue
-     * @return  HeaderFooter
+     * @param string $pValue
+     *
+     * @return HeaderFooter
      */
     public function setOddFooter($pValue)
     {
@@ -225,7 +206,7 @@ class HeaderFooter
     }
 
     /**
-     * Get EvenHeader
+     * Get EvenHeader.
      *
      * @return string
      */
@@ -235,10 +216,11 @@ class HeaderFooter
     }
 
     /**
-     * Set EvenHeader
+     * Set EvenHeader.
      *
-     * @param   string   $pValue
-     * @return  HeaderFooter
+     * @param string $pValue
+     *
+     * @return HeaderFooter
      */
     public function setEvenHeader($pValue)
     {
@@ -248,7 +230,7 @@ class HeaderFooter
     }
 
     /**
-     * Get EvenFooter
+     * Get EvenFooter.
      *
      * @return string
      */
@@ -258,10 +240,11 @@ class HeaderFooter
     }
 
     /**
-     * Set EvenFooter
+     * Set EvenFooter.
      *
-     * @param   string   $pValue
-     * @return  HeaderFooter
+     * @param string $pValue
+     *
+     * @return HeaderFooter
      */
     public function setEvenFooter($pValue)
     {
@@ -271,7 +254,7 @@ class HeaderFooter
     }
 
     /**
-     * Get FirstHeader
+     * Get FirstHeader.
      *
      * @return string
      */
@@ -281,10 +264,11 @@ class HeaderFooter
     }
 
     /**
-     * Set FirstHeader
+     * Set FirstHeader.
      *
-     * @param   string   $pValue
-     * @return  HeaderFooter
+     * @param string $pValue
+     *
+     * @return HeaderFooter
      */
     public function setFirstHeader($pValue)
     {
@@ -294,7 +278,7 @@ class HeaderFooter
     }
 
     /**
-     * Get FirstFooter
+     * Get FirstFooter.
      *
      * @return string
      */
@@ -304,9 +288,10 @@ class HeaderFooter
     }
 
     /**
-     * Set FirstFooter
+     * Set FirstFooter.
      *
      * @param string $pValue
+     *
      * @return HeaderFooter
      */
     public function setFirstFooter($pValue)
@@ -317,7 +302,7 @@ class HeaderFooter
     }
 
     /**
-     * Get DifferentOddEven
+     * Get DifferentOddEven.
      *
      * @return bool
      */
@@ -327,12 +312,13 @@ class HeaderFooter
     }
 
     /**
-     * Set DifferentOddEven
+     * Set DifferentOddEven.
      *
      * @param bool $pValue
+     *
      * @return HeaderFooter
      */
-    public function setDifferentOddEven($pValue = false)
+    public function setDifferentOddEven($pValue)
     {
         $this->differentOddEven = $pValue;
 
@@ -340,7 +326,7 @@ class HeaderFooter
     }
 
     /**
-     * Get DifferentFirst
+     * Get DifferentFirst.
      *
      * @return bool
      */
@@ -350,12 +336,13 @@ class HeaderFooter
     }
 
     /**
-     * Set DifferentFirst
+     * Set DifferentFirst.
      *
      * @param bool $pValue
+     *
      * @return HeaderFooter
      */
-    public function setDifferentFirst($pValue = false)
+    public function setDifferentFirst($pValue)
     {
         $this->differentFirst = $pValue;
 
@@ -363,7 +350,7 @@ class HeaderFooter
     }
 
     /**
-     * Get ScaleWithDocument
+     * Get ScaleWithDocument.
      *
      * @return bool
      */
@@ -373,12 +360,13 @@ class HeaderFooter
     }
 
     /**
-     * Set ScaleWithDocument
+     * Set ScaleWithDocument.
      *
      * @param bool $pValue
+     *
      * @return HeaderFooter
      */
-    public function setScaleWithDocument($pValue = true)
+    public function setScaleWithDocument($pValue)
     {
         $this->scaleWithDocument = $pValue;
 
@@ -386,7 +374,7 @@ class HeaderFooter
     }
 
     /**
-     * Get AlignWithMargins
+     * Get AlignWithMargins.
      *
      * @return bool
      */
@@ -396,12 +384,13 @@ class HeaderFooter
     }
 
     /**
-     * Set AlignWithMargins
+     * Set AlignWithMargins.
      *
      * @param bool $pValue
+     *
      * @return HeaderFooter
      */
-    public function setAlignWithMargins($pValue = true)
+    public function setAlignWithMargins($pValue)
     {
         $this->alignWithMargins = $pValue;
 
@@ -409,14 +398,14 @@ class HeaderFooter
     }
 
     /**
-     * Add header/footer image
+     * Add header/footer image.
      *
-     * @param   HeaderFooterDrawing $image
-     * @param   string $location
-     * @throws  \PhpOffice\PhpSpreadsheet\Exception
-     * @return  HeaderFooter
+     * @param HeaderFooterDrawing $image
+     * @param string $location
+     *
+     * @return HeaderFooter
      */
-    public function addImage(HeaderFooterDrawing $image = null, $location = self::IMAGE_HEADER_LEFT)
+    public function addImage(HeaderFooterDrawing $image, $location = self::IMAGE_HEADER_LEFT)
     {
         $this->headerFooterImages[$location] = $image;
 
@@ -424,10 +413,10 @@ class HeaderFooter
     }
 
     /**
-     * Remove header/footer image
+     * Remove header/footer image.
      *
      * @param string $location
-     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     *
      * @return HeaderFooter
      */
     public function removeImage($location = self::IMAGE_HEADER_LEFT)
@@ -440,25 +429,21 @@ class HeaderFooter
     }
 
     /**
-     * Set header/footer images
+     * Set header/footer images.
      *
-     * @param  HeaderFooterDrawing[] $images
-     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     * @param HeaderFooterDrawing[] $images
+     *
      * @return HeaderFooter
      */
-    public function setImages($images)
+    public function setImages(array $images)
     {
-        if (!is_array($images)) {
-            throw new \PhpOffice\PhpSpreadsheet\Exception('Invalid parameter!');
-        }
-
         $this->headerFooterImages = $images;
 
         return $this;
     }
 
     /**
-     * Get header/footer images
+     * Get header/footer images.
      *
      * @return HeaderFooterDrawing[]
      */

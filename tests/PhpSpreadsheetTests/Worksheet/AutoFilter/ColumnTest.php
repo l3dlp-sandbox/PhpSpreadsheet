@@ -3,8 +3,9 @@
 namespace PhpOffice\PhpSpreadsheetTests\Worksheet\AutoFilter;
 
 use PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter;
+use PHPUnit\Framework\TestCase;
 
-class ColumnTest extends \PHPUnit_Framework_TestCase
+class ColumnTest extends TestCase
 {
     private $testInitialColumn = 'H';
 
@@ -22,16 +23,13 @@ class ColumnTest extends \PHPUnit_Framework_TestCase
             ->method('testColumnInRange')
             ->will($this->returnValue(3));
 
-        $this->testAutoFilterColumnObject = new AutoFilter\Column(
-            $this->testInitialColumn,
-            $this->mockAutoFilterObject
-        );
+        $this->testAutoFilterColumnObject = new AutoFilter\Column($this->testInitialColumn, $this->mockAutoFilterObject);
     }
 
     public function testGetColumnIndex()
     {
         $result = $this->testAutoFilterColumnObject->getColumnIndex();
-        $this->assertEquals($this->testInitialColumn, $result);
+        self::assertEquals($this->testInitialColumn, $result);
     }
 
     public function testSetColumnIndex()
@@ -40,131 +38,139 @@ class ColumnTest extends \PHPUnit_Framework_TestCase
 
         //    Setters return the instance to implement the fluent interface
         $result = $this->testAutoFilterColumnObject->setColumnIndex($expectedResult);
-        $this->assertInstanceOf(AutoFilter\Column::class, $result);
+        self::assertInstanceOf(AutoFilter\Column::class, $result);
 
         $result = $this->testAutoFilterColumnObject->getColumnIndex();
-        $this->assertEquals($expectedResult, $result);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function testGetParent()
     {
         $result = $this->testAutoFilterColumnObject->getParent();
-        $this->assertInstanceOf(AutoFilter::class, $result);
+        self::assertInstanceOf(AutoFilter::class, $result);
     }
 
     public function testSetParent()
     {
         //    Setters return the instance to implement the fluent interface
         $result = $this->testAutoFilterColumnObject->setParent($this->mockAutoFilterObject);
-        $this->assertInstanceOf(AutoFilter\Column::class, $result);
+        self::assertInstanceOf(AutoFilter\Column::class, $result);
     }
 
     public function testGetFilterType()
     {
         $result = $this->testAutoFilterColumnObject->getFilterType();
-        $this->assertEquals(AutoFilter\Column::AUTOFILTER_FILTERTYPE_FILTER, $result);
+        self::assertEquals(AutoFilter\Column::AUTOFILTER_FILTERTYPE_FILTER, $result);
     }
 
     public function testSetFilterType()
     {
         $result = $this->testAutoFilterColumnObject->setFilterType(AutoFilter\Column::AUTOFILTER_FILTERTYPE_DYNAMICFILTER);
-        $this->assertInstanceOf(AutoFilter\Column::class, $result);
+        self::assertInstanceOf(AutoFilter\Column::class, $result);
 
         $result = $this->testAutoFilterColumnObject->getFilterType();
-        $this->assertEquals(AutoFilter\Column::AUTOFILTER_FILTERTYPE_DYNAMICFILTER, $result);
+        self::assertEquals(AutoFilter\Column::AUTOFILTER_FILTERTYPE_DYNAMICFILTER, $result);
     }
 
-    /**
-     * @expectedException \PhpOffice\PhpSpreadsheet\Exception
-     */
     public function testSetInvalidFilterTypeThrowsException()
     {
+        $this->expectException(\PhpOffice\PhpSpreadsheet\Exception::class);
+
         $expectedResult = 'Unfiltered';
 
-        $result = $this->testAutoFilterColumnObject->setFilterType($expectedResult);
+        $this->testAutoFilterColumnObject->setFilterType($expectedResult);
     }
 
     public function testGetJoin()
     {
         $result = $this->testAutoFilterColumnObject->getJoin();
-        $this->assertEquals(AutoFilter\Column::AUTOFILTER_COLUMN_JOIN_OR, $result);
+        self::assertEquals(AutoFilter\Column::AUTOFILTER_COLUMN_JOIN_OR, $result);
     }
 
     public function testSetJoin()
     {
         $result = $this->testAutoFilterColumnObject->setJoin(AutoFilter\Column::AUTOFILTER_COLUMN_JOIN_AND);
-        $this->assertInstanceOf(AutoFilter\Column::class, $result);
+        self::assertInstanceOf(AutoFilter\Column::class, $result);
 
         $result = $this->testAutoFilterColumnObject->getJoin();
-        $this->assertEquals(AutoFilter\Column::AUTOFILTER_COLUMN_JOIN_AND, $result);
+        self::assertEquals(AutoFilter\Column::AUTOFILTER_COLUMN_JOIN_AND, $result);
     }
 
-    /**
-     * @expectedException \PhpOffice\PhpSpreadsheet\Exception
-     */
     public function testSetInvalidJoinThrowsException()
     {
+        $this->expectException(\PhpOffice\PhpSpreadsheet\Exception::class);
+
         $expectedResult = 'Neither';
 
-        $result = $this->testAutoFilterColumnObject->setJoin($expectedResult);
+        $this->testAutoFilterColumnObject->setJoin($expectedResult);
     }
 
     public function testSetAttributes()
     {
-        $attributeSet = ['val' => 100,
-                                'maxVal' => 200,
-                             ];
+        $attributeSet = [
+            'val' => 100,
+            'maxVal' => 200,
+        ];
 
         //    Setters return the instance to implement the fluent interface
         $result = $this->testAutoFilterColumnObject->setAttributes($attributeSet);
-        $this->assertInstanceOf(AutoFilter\Column::class, $result);
+        self::assertInstanceOf(AutoFilter\Column::class, $result);
     }
 
     public function testGetAttributes()
     {
-        $attributeSet = ['val' => 100,
-                                'maxVal' => 200,
-                             ];
+        $attributeSet = [
+            'val' => 100,
+            'maxVal' => 200,
+        ];
 
         $this->testAutoFilterColumnObject->setAttributes($attributeSet);
 
         $result = $this->testAutoFilterColumnObject->getAttributes();
-        $this->assertTrue(is_array($result));
-        $this->assertEquals(count($attributeSet), count($result));
+        self::assertInternalType('array', $result);
+        self::assertCount(count($attributeSet), $result);
     }
 
     public function testSetAttribute()
     {
-        $attributeSet = ['val' => 100,
-                                'maxVal' => 200,
-                             ];
+        $attributeSet = [
+            'val' => 100,
+            'maxVal' => 200,
+        ];
 
         foreach ($attributeSet as $attributeName => $attributeValue) {
             //    Setters return the instance to implement the fluent interface
             $result = $this->testAutoFilterColumnObject->setAttribute($attributeName, $attributeValue);
-            $this->assertInstanceOf(AutoFilter\Column::class, $result);
+            self::assertInstanceOf(AutoFilter\Column::class, $result);
         }
     }
 
     public function testGetAttribute()
     {
-        $attributeSet = ['val' => 100,
-                                'maxVal' => 200,
-                             ];
+        $attributeSet = [
+            'val' => 100,
+            'maxVal' => 200,
+        ];
 
         $this->testAutoFilterColumnObject->setAttributes($attributeSet);
 
         foreach ($attributeSet as $attributeName => $attributeValue) {
             $result = $this->testAutoFilterColumnObject->getAttribute($attributeName);
-            $this->assertEquals($attributeValue, $result);
+            self::assertEquals($attributeValue, $result);
         }
         $result = $this->testAutoFilterColumnObject->getAttribute('nonExistentAttribute');
-        $this->assertNull($result);
+        self::assertNull($result);
     }
 
     public function testClone()
     {
+        $originalRule = $this->testAutoFilterColumnObject->createRule();
         $result = clone $this->testAutoFilterColumnObject;
-        $this->assertInstanceOf(AutoFilter\Column::class, $result);
+        self::assertInstanceOf(AutoFilter\Column::class, $result);
+        self::assertCount(1, $result->getRules());
+        self::assertContainsOnlyInstancesOf(AutoFilter\Column\Rule::class, $result->getRules());
+        $clonedRule = $result->getRules()[0];
+        self::assertNotSame($originalRule, $clonedRule);
+        self::assertSame($result, $clonedRule->getParent());
     }
 }

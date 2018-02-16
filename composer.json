@@ -4,7 +4,7 @@
     "keywords": ["PHP", "OpenXML", "Excel", "xlsx", "xls", "ods", "gnumeric", "spreadsheet"],
     "homepage": "https://github.com/PHPOffice/PhpSpreadsheet",
     "type": "library",
-    "license": "LGPL-2.1",
+    "license": "LGPL-2.1-or-later",
     "authors": [
         {
             "name": "Maarten Balliauw",
@@ -22,23 +22,42 @@
             "name": "Erik Tilt"
         }
     ],
+    "scripts": {
+        "check": [
+            "php-cs-fixer fix --ansi --dry-run --diff",
+            "phpcs --report-width=200 --report-summary  --report-full samples/ src/ tests/ --ignore=samples/Header.php --standard=PSR2 -n",
+            "phpunit --color=always"
+        ],
+        "fix": [
+            "php-cs-fixer fix --ansi"
+        ]
+    },
     "require": {
-        "php": "^5.5|^7.0",
-        "ext-mbstring": "*",
+        "php": "^5.6|^7.0",
+        "ext-ctype": "*",
+        "ext-dom": "*",
+        "ext-gd": "*",
         "ext-iconv": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "ext-SimpleXML": "*",
         "ext-xml": "*",
-        "ext-xmlwriter": "*"
+        "ext-xmlreader": "*",
+        "ext-xmlwriter": "*",
+        "ext-zip": "*",
+        "ext-zlib": "*",
+        "psr/simple-cache": "^1.0"
     },
     "require-dev": {
-        "squizlabs/php_codesniffer": "2.*",
-        "phpunit/phpunit": "4.6.*",
-        "mikey179/vfsStream": "1.5.*",
-        "friendsofphp/php-cs-fixer": "^1.11"
+        "tecnickcom/tcpdf": "^6.2",
+        "squizlabs/php_codesniffer": "^2.7",
+        "phpunit/phpunit": "^5.7",
+        "dompdf/dompdf": "^0.8.0",
+        "mpdf/mpdf": "^7.0.0",
+        "jpgraph/jpgraph": "^4.0",
+        "friendsofphp/php-cs-fixer": "@stable"
     },
     "suggest": {
-        "ext-zip": "Required to handle .xlsx .ods or .gnumeric files",
-        "ext-gd": "Required for exact column width autocalculation",
-        "ext-dom": "Option to read and write HTML files",
         "mpdf/mpdf": "Option for rendering PDF with PDF Writer",
         "dompdf/dompdf": "Option for rendering PDF with PDF Writer",
         "tecnick.com/tcpdf": "Option for rendering PDF with PDF Writer",

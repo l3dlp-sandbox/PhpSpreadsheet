@@ -3,18 +3,19 @@
 namespace PhpOffice\PhpSpreadsheetTests\Style;
 
 use PhpOffice\PhpSpreadsheet\Style\Color;
+use PHPUnit\Framework\TestCase;
 
-class ColorTest extends \PHPUnit_Framework_TestCase
+class ColorTest extends TestCase
 {
     /**
      * @dataProvider providerColorGetRed
+     *
+     * @param mixed $expectedResult
      */
-    public function testGetRed()
+    public function testGetRed($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Color::class, 'getRed'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = Color::getRed(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerColorGetRed()
@@ -24,13 +25,13 @@ class ColorTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerColorGetGreen
+     *
+     * @param mixed $expectedResult
      */
-    public function testGetGreen()
+    public function testGetGreen($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Color::class, 'getGreen'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = Color::getGreen(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerColorGetGreen()
@@ -40,13 +41,13 @@ class ColorTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerColorGetBlue
+     *
+     * @param mixed $expectedResult
      */
-    public function testGetBlue()
+    public function testGetBlue($expectedResult, ...$args)
     {
-        $args = func_get_args();
-        $expectedResult = array_pop($args);
-        $result = call_user_func_array([Color::class, 'getBlue'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = Color::getBlue(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerColorGetBlue()
@@ -56,12 +57,13 @@ class ColorTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerColorChangeBrightness
+     *
+     * @param mixed $expectedResult
      */
-    public function testChangeBrightness()
+    public function testChangeBrightness($expectedResult, ...$args)
     {
-        list($args, $expectedResult) = func_get_args();
-        $result = call_user_func_array([Color::class, 'changeBrightness'], $args);
-        $this->assertEquals($expectedResult, $result);
+        $result = Color::changeBrightness(...$args);
+        self::assertEquals($expectedResult, $result);
     }
 
     public function providerColorChangeBrightness()

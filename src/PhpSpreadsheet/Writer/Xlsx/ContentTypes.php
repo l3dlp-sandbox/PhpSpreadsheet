@@ -2,46 +2,32 @@
 
 namespace PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-/**
- * Copyright (c) 2006 - 2016 PhpSpreadsheet
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * @category   PhpSpreadsheet
- * @copyright  Copyright (c) 2006 - 2016 PhpSpreadsheet (https://github.com/PHPOffice/PhpSpreadsheet)
- * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt    LGPL
- * @version    ##VERSION##, ##DATE##
- */
+use PhpOffice\PhpSpreadsheet\Shared\File;
+use PhpOffice\PhpSpreadsheet\Shared\XMLWriter;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\MemoryDrawing;
+use PhpOffice\PhpSpreadsheet\Writer\Exception as WriterException;
+
 class ContentTypes extends WriterPart
 {
     /**
-     * Write content types to XML format
+     * Write content types to XML format.
      *
-     * @param     \PhpOffice\PhpSpreadsheet\Spreadsheet    $spreadsheet
-     * @param    bool        $includeCharts    Flag indicating if we should include drawing details for charts
-     * @throws     \PhpOffice\PhpSpreadsheet\Writer\Exception
-     * @return string                  XML Output
+     * @param Spreadsheet $spreadsheet
+     * @param bool $includeCharts Flag indicating if we should include drawing details for charts
+     *
+     * @throws WriterException
+     *
+     * @return string XML Output
      */
-    public function writeContentTypes(\PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet = null, $includeCharts = false)
+    public function writeContentTypes(Spreadsheet $spreadsheet, $includeCharts = false)
     {
         // Create XML writer
         $objWriter = null;
         if ($this->getParentWriter()->getUseDiskCaching()) {
-            $objWriter = new \PhpOffice\PhpSpreadsheet\Shared\XMLWriter(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter::STORAGE_DISK, $this->getParentWriter()->getDiskCachingDirectory());
+            $objWriter = new XMLWriter(XMLWriter::STORAGE_DISK, $this->getParentWriter()->getDiskCachingDirectory());
         } else {
-            $objWriter = new \PhpOffice\PhpSpreadsheet\Shared\XMLWriter(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter::STORAGE_MEMORY);
+            $objWriter = new XMLWriter(XMLWriter::STORAGE_MEMORY);
         }
 
         // XML header
@@ -138,7 +124,7 @@ class ContentTypes extends WriterPart
             if ($this->getParentWriter()->getDrawingHashTable()->getByIndex($i) instanceof \PhpOffice\PhpSpreadsheet\Worksheet\Drawing) {
                 $extension = strtolower($this->getParentWriter()->getDrawingHashTable()->getByIndex($i)->getExtension());
                 $mimeType = $this->getImageMimeType($this->getParentWriter()->getDrawingHashTable()->getByIndex($i)->getPath());
-            } elseif ($this->getParentWriter()->getDrawingHashTable()->getByIndex($i) instanceof \PhpOffice\PhpSpreadsheet\Worksheet\MemoryDrawing) {
+            } elseif ($this->getParentWriter()->getDrawingHashTable()->getByIndex($i) instanceof MemoryDrawing) {
                 $extension = strtolower($this->getParentWriter()->getDrawingHashTable()->getByIndex($i)->getMimeType());
                 $extension = explode('/', $extension);
                 $extension = $extension[1];
@@ -163,8 +149,8 @@ class ContentTypes extends WriterPart
         }
         $sheetCount = $spreadsheet->getSheetCount();
         for ($i = 0; $i < $sheetCount; ++$i) {
-            if (count($spreadsheet->getSheet()->getHeaderFooter()->getImages()) > 0) {
-                foreach ($spreadsheet->getSheet()->getHeaderFooter()->getImages() as $image) {
+            if (count($spreadsheet->getSheet($i)->getHeaderFooter()->getImages()) > 0) {
+                foreach ($spreadsheet->getSheet($i)->getHeaderFooter()->getImages() as $image) {
                     if (!isset($aMediaContentTypes[strtolower($image->getExtension())])) {
                         $aMediaContentTypes[strtolower($image->getExtension())] = $this->getImageMimeType($image->getPath());
 
@@ -181,32 +167,35 @@ class ContentTypes extends WriterPart
     }
 
     /**
-     * Get image mime type
+     * Get image mime type.
      *
-     * @param     string    $pFile    Filename
-     * @throws     \PhpOffice\PhpSpreadsheet\Writer\Exception
-     * @return     string    Mime Type
+     * @param string $pFile Filename
+     *
+     * @throws WriterException
+     *
+     * @return string Mime Type
      */
-    private function getImageMimeType($pFile = '')
+    private function getImageMimeType($pFile)
     {
-        if (\PhpOffice\PhpSpreadsheet\Shared\File::fileExists($pFile)) {
+        if (File::fileExists($pFile)) {
             $image = getimagesize($pFile);
 
             return image_type_to_mime_type($image[2]);
-        } else {
-            throw new \PhpOffice\PhpSpreadsheet\Writer\Exception("File $pFile does not exist");
         }
+
+        throw new WriterException("File $pFile does not exist");
     }
 
     /**
-     * Write Default content type
+     * Write Default content type.
      *
-     * @param     \PhpOffice\PhpSpreadsheet\Shared\XMLWriter     $objWriter         XML Writer
-     * @param     string                         $pPartname         Part name
-     * @param     string                         $pContentType     Content type
-     * @throws     \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param string $pPartname Part name
+     * @param string $pContentType Content type
+     *
+     * @throws WriterException
      */
-    private function writeDefaultContentType(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, $pPartname = '', $pContentType = '')
+    private function writeDefaultContentType(XMLWriter $objWriter, $pPartname, $pContentType)
     {
         if ($pPartname != '' && $pContentType != '') {
             // Write content type
@@ -215,19 +204,20 @@ class ContentTypes extends WriterPart
             $objWriter->writeAttribute('ContentType', $pContentType);
             $objWriter->endElement();
         } else {
-            throw new \PhpOffice\PhpSpreadsheet\Writer\Exception('Invalid parameters passed.');
+            throw new WriterException('Invalid parameters passed.');
         }
     }
 
     /**
-     * Write Override content type
+     * Write Override content type.
      *
-     * @param     \PhpOffice\PhpSpreadsheet\Shared\XMLWriter     $objWriter         XML Writer
-     * @param     string                         $pPartname         Part name
-     * @param     string                         $pContentType     Content type
-     * @throws     \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @param XMLWriter $objWriter XML Writer
+     * @param string $pPartname Part name
+     * @param string $pContentType Content type
+     *
+     * @throws WriterException
      */
-    private function writeOverrideContentType(\PhpOffice\PhpSpreadsheet\Shared\XMLWriter $objWriter = null, $pPartname = '', $pContentType = '')
+    private function writeOverrideContentType(XMLWriter $objWriter, $pPartname, $pContentType)
     {
         if ($pPartname != '' && $pContentType != '') {
             // Write content type
@@ -236,7 +226,7 @@ class ContentTypes extends WriterPart
             $objWriter->writeAttribute('ContentType', $pContentType);
             $objWriter->endElement();
         } else {
-            throw new \PhpOffice\PhpSpreadsheet\Writer\Exception('Invalid parameters passed.');
+            throw new WriterException('Invalid parameters passed.');
         }
     }
 }

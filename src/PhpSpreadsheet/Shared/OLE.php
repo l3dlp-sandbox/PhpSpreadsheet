@@ -2,7 +2,7 @@
 
 namespace PhpOffice\PhpSpreadsheet\Shared;
 
-/* vim: set expandtab tabstop=4 shiftwidth=4: */
+// vim: set expandtab tabstop=4 shiftwidth=4:
 // +----------------------------------------------------------------------+
 // | PHP Version 4                                                        |
 // +----------------------------------------------------------------------+
@@ -21,11 +21,16 @@ namespace PhpOffice\PhpSpreadsheet\Shared;
 // +----------------------------------------------------------------------+
 //
 
+use PhpOffice\PhpSpreadsheet\Reader\Exception as ReaderException;
+use PhpOffice\PhpSpreadsheet\Shared\OLE\ChainedBlockStream;
+use PhpOffice\PhpSpreadsheet\Shared\OLE\PPS\Root;
+
 /*
-* Array for storing OLE instances that are accessed from
-* OLE_ChainedBlockStream::stream_open().
-* @var  array
-*/
+ * Array for storing OLE instances that are accessed from
+ * OLE_ChainedBlockStream::stream_open().
+ *
+ * @var array
+ */
 $GLOBALS['_OLE_INSTANCES'] = [];
 
 /**
@@ -33,6 +38,7 @@ $GLOBALS['_OLE_INSTANCES'] = [];
  *
  * @author   Xavier Noguer <xnoguer@php.net>
  * @author   Christian Schmidt <schmidt@php.net>
+ *
  * @category   PhpSpreadsheet
  */
 class OLE
@@ -45,71 +51,88 @@ class OLE
     const OLE_PPS_SIZE = 0x80;
 
     /**
-     * The file handle for reading an OLE container
+     * The file handle for reading an OLE container.
+     *
      * @var resource
      */
     public $_file_handle;
 
     /**
-     * Array of PPS's found on the OLE container
+     * Array of PPS's found on the OLE container.
+     *
      * @var array
      */
     public $_list = [];
 
     /**
-     * Root directory of OLE container
-     * @var OLE_PPS_Root
+     * Root directory of OLE container.
+     *
+     * @var Root
      */
     public $root;
 
     /**
-     * Big Block Allocation Table
-     * @var array  (blockId => nextBlockId)
+     * Big Block Allocation Table.
+     *
+     * @var array (blockId => nextBlockId)
      */
     public $bbat;
 
     /**
-     * Short Block Allocation Table
-     * @var array  (blockId => nextBlockId)
+     * Short Block Allocation Table.
+     *
+     * @var array (blockId => nextBlockId)
      */
     public $sbat;
 
     /**
      * Size of big blocks. This is usually 512.
-     * @var  int  number of octets per block.
+     *
+     * @var int number of octets per block
      */
     public $bigBlockSize;
 
     /**
      * Size of small blocks. This is usually 64.
-     * @var  int  number of octets per block
+     *
+     * @var int number of octets per block
      */
     public $smallBlockSize;
+
+    /**
+     * Threshold for big blocks.
+     *
+     * @var int
+     */
+    public $bigBlockThreshold;
 
     /**
      * Reads an OLE container from the contents of the file given.
      *
      * @acces public
+     *
      * @param string $file
-     * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
+     *
+     * @throws ReaderException
+     *
      * @return bool true on success, PEAR_Error on failure
      */
     public function read($file)
     {
         $fh = fopen($file, 'r');
         if (!$fh) {
-            throw new \PhpOffice\PhpSpreadsheet\Reader\Exception("Can't open file $file");
+            throw new ReaderException("Can't open file $file");
         }
         $this->_file_handle = $fh;
 
         $signature = fread($fh, 8);
         if ("\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1" != $signature) {
-            throw new \PhpOffice\PhpSpreadsheet\Reader\Exception("File doesn't seem to be an OLE container.");
+            throw new ReaderException("File doesn't seem to be an OLE container.");
         }
         fseek($fh, 28);
         if (fread($fh, 2) != "\xFE\xFF") {
             // This shouldn't be a problem in practice
-            throw new \PhpOffice\PhpSpreadsheet\Reader\Exception('Only Little-Endian encoding is supported.');
+            throw new ReaderException('Only Little-Endian encoding is supported.');
         }
         // Size of blocks and short blocks in bytes
         $this->bigBlockSize = pow(2, self::_readInt2($fh));
@@ -179,8 +202,9 @@ class OLE
     }
 
     /**
-     * @param  int  block id
-     * @param  int  byte offset from beginning of file
+     * @param int $blockId byte offset from beginning of file
+     *
+     * @return int
      */
     public function _getBlockOffset($blockId)
     {
@@ -190,14 +214,16 @@ class OLE
     /**
      * Returns a stream for use with fread() etc. External callers should
      * use \PhpOffice\PhpSpreadsheet\Shared\OLE\PPS\File::getStream().
-     * @param   int|PPS   block id or PPS
-     * @return  resource  read-only stream
+     *
+     * @param int|OLE\PPS $blockIdOrPps block id or PPS
+     *
+     * @return resource read-only stream
      */
     public function getStream($blockIdOrPps)
     {
         static $isRegistered = false;
         if (!$isRegistered) {
-            stream_wrapper_register('ole-chainedblockstream', '\\PhpOffice\\PhpSpreadsheet\\Shared\\OLE\\ChainedBlockStream');
+            stream_wrapper_register('ole-chainedblockstream', ChainedBlockStream::class);
             $isRegistered = true;
         }
 
@@ -220,8 +246,10 @@ class OLE
 
     /**
      * Reads a signed char.
-     * @param   resource  $fh file handle
-     * @return  int
+     *
+     * @param resource $fh file handle
+     *
+     * @return int
      */
     private static function _readInt1($fh)
     {
@@ -232,8 +260,10 @@ class OLE
 
     /**
      * Reads an unsigned short (2 octets).
-     * @param   resource $fh file handle
-     * @return  int
+     *
+     * @param resource $fh file handle
+     *
+     * @return int
      */
     private static function _readInt2($fh)
     {
@@ -244,8 +274,10 @@ class OLE
 
     /**
      * Reads an unsigned long (4 octets).
-     * @param   resource $fh file handle
-     * @return  int
+     *
+     * @param resource $fh file handle
+     *
+     * @return int
      */
     private static function _readInt4($fh)
     {
@@ -258,13 +290,14 @@ class OLE
      * Gets information about all PPS's on the OLE container from the PPS WK's
      * creates an OLE_PPS object for each one.
      *
-     * @param  int $blockId the block id of the first block
+     * @param int $blockId the block id of the first block
+     *
      * @return bool true on success, PEAR_Error on failure
      */
     public function _readPpsWks($blockId)
     {
         $fh = $this->getStream($blockId);
-        for ($pos = 0;; $pos += 128) {
+        for ($pos = 0; true; $pos += 128) {
             fseek($fh, $pos, SEEK_SET);
             $nameUtf16 = fread($fh, 64);
             $nameLength = self::_readInt2($fh);
@@ -274,14 +307,17 @@ class OLE
             $type = self::_readInt1($fh);
             switch ($type) {
                 case self::OLE_PPS_TYPE_ROOT:
-                    $pps = new OLE\PPS_Root(null, null, []);
+                    $pps = new OLE\PPS\Root(null, null, []);
                     $this->root = $pps;
+
                     break;
                 case self::OLE_PPS_TYPE_DIR:
                     $pps = new OLE\PPS(null, null, null, null, null, null, null, null, null, []);
+
                     break;
                 case self::OLE_PPS_TYPE_FILE:
                     $pps = new OLE\PPS\File($name);
+
                     break;
                 default:
                     continue;
@@ -329,20 +365,21 @@ class OLE
 
     /**
      * It checks whether the PPS tree is complete (all PPS's read)
-     * starting with the given PPS (not necessarily root)
+     * starting with the given PPS (not necessarily root).
      *
      * @param int $index The index of the PPS from which we are checking
+     *
      * @return bool Whether the PPS tree for the given PPS is complete
      */
     public function _ppsTreeComplete($index)
     {
         return isset($this->_list[$index]) &&
-               ($pps = $this->_list[$index]) &&
-               ($pps->PrevPps == -1 ||
+            ($pps = $this->_list[$index]) &&
+            ($pps->PrevPps == -1 ||
                 $this->_ppsTreeComplete($pps->PrevPps)) &&
-               ($pps->NextPps == -1 ||
+            ($pps->NextPps == -1 ||
                 $this->_ppsTreeComplete($pps->NextPps)) &&
-               ($pps->DirPps == -1 ||
+            ($pps->DirPps == -1 ||
                 $this->_ppsTreeComplete($pps->DirPps));
     }
 
@@ -351,6 +388,7 @@ class OLE
      * If there is no PPS for the index given, it will return false.
      *
      * @param int $index The index for the PPS
+     *
      * @return bool true if it's a File PPS, false otherwise
      */
     public function isFile($index)
@@ -366,7 +404,8 @@ class OLE
      * Checks whether a PPS is a Root PPS or not.
      * If there is no PPS for the index given, it will return false.
      *
-     * @param int $index The index for the PPS.
+     * @param int $index the index for the PPS
+     *
      * @return bool true if it's a Root PPS, false otherwise
      */
     public function isRoot($index)
@@ -392,11 +431,13 @@ class OLE
      * Gets data from a PPS
      * If there is no PPS for the index given, it will return an empty string.
      *
-     * @param int $index    The index for the PPS
+     * @param int $index The index for the PPS
      * @param int $position The position from which to start reading
      *                          (relative to the PPS)
-     * @param int $length   The amount of bytes to read (at most)
+     * @param int $length The amount of bytes to read (at most)
+     *
      * @return string The binary string containing the data requested
+     *
      * @see OLE_PPS_File::getStream()
      */
     public function getData($index, $position, $length)
@@ -416,7 +457,8 @@ class OLE
      * Gets the data length from a PPS
      * If there is no PPS for the index given, it will return 0.
      *
-     * @param int $index    The index for the PPS
+     * @param int $index The index for the PPS
+     *
      * @return int The amount of bytes in data the PPS has
      */
     public function getDataLength($index)
@@ -429,18 +471,19 @@ class OLE
     }
 
     /**
-     * Utility function to transform ASCII text to Unicode
+     * Utility function to transform ASCII text to Unicode.
      *
-     * @static
      * @param string $ascii The ASCII string to transform
+     *
      * @return string The string in Unicode
      */
     public static function ascToUcs($ascii)
     {
         $rawname = '';
-        for ($i = 0; $i < strlen($ascii); ++$i) {
-            $rawname .= $ascii{$i}
-            . "\x00";
+        $iMax = strlen($ascii);
+        for ($i = 0; $i < $iMax; ++$i) {
+            $rawname .= $ascii[$i]
+                . "\x00";
         }
 
         return $rawname;
@@ -448,13 +491,13 @@ class OLE
 
     /**
      * Utility function
-     * Returns a string for the OLE container with the date given
+     * Returns a string for the OLE container with the date given.
      *
-     * @static
      * @param int $date A timestamp
+     *
      * @return string The string for the OLE container
      */
-    public static function localDateToOLE($date = null)
+    public static function localDateToOLE($date)
     {
         if (!isset($date)) {
             return "\x00\x00\x00\x00\x00\x00\x00\x00";
@@ -492,16 +535,16 @@ class OLE
     }
 
     /**
-     * Returns a timestamp from an OLE container's date
+     * Returns a timestamp from an OLE container's date.
      *
-     * @static
      * @param int $string A binary string with the encoded date
+     *
      * @return string The timestamp corresponding to the string
      */
     public static function OLE2LocalDate($string)
     {
         if (strlen($string) != 8) {
-            return new PEAR_Error('Expecting 8 byte string');
+            throw new ReaderException('Expecting 8 byte string');
         }
 
         // factor used for separating numbers into 4 bytes parts
