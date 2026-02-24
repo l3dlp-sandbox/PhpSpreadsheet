@@ -130,6 +130,7 @@ class FontStyleTest extends AbstractFunctional
         $spreadsheet = $reader->load($infile);
         self::assertSame('Calibri', $spreadsheet->getDefaultStyle()->getFont()->getName(), 'ignore spreadsheet style, use PhpSpreadsheet default');
         $sheet = $spreadsheet->getActiveSheet();
+        self::assertSame(-1.0, $sheet->getColumnDimension('A')->getWidth());
         self::assertSame('Calibri', $sheet->getStyle('A1')->getFont()->getName());
         self::assertSame(13, $sheet->getCell('A1')->getValue());
         $spreadsheet->disconnectWorksheets();

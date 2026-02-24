@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org). Thia is a
 - Ods Reader fonts and fills. [Issue #2622](https://github.com/PHPOffice/PhpSpreadsheet/issues/2622) [Issue #1191](https://github.com/PHPOffice/PhpSpreadsheet/issues/1191) [PR #4810](https://github.com/PHPOffice/PhpSpreadsheet/pull/4810)
 - Ods Reader alignment and cell protection. [PR #4813](https://github.com/PHPOffice/PhpSpreadsheet/pull/4813)
 - Ods Reader borders. [PR #4814](https://github.com/PHPOffice/PhpSpreadsheet/pull/4814)
+- Ods Reader column styles (partial). [PR #4815](https://github.com/PHPOffice/PhpSpreadsheet/pull/4815)
 
 ## 2026-01-10 - 5.4.0
 
