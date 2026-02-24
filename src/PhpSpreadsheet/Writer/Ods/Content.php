@@ -142,7 +142,6 @@ class Content extends WriterPart
                     'table:style-name',
                     sprintf('%s_%d_%d', Style::COLUMN_STYLE_PREFIX, $sheetIndex, $columnDimension->getColumnNumeric())
                 );
-                $objWriter->writeAttribute('table:default-cell-style-name', 'ce0');
                 $objWriter->endElement();
             }
             $this->writeRows($objWriter, $spreadsheet->getSheet($sheetIndex), $sheetIndex);

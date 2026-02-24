@@ -12,9 +12,6 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Font;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @TODO The class doesn't read the bold/italic/underline properties (rich text)
- */
 class OdsTest extends TestCase
 {
     private const ODS_TEST_FILE = 'samples/templates/OOCalcTest.ods';
