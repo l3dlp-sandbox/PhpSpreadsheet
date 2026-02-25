@@ -11,6 +11,7 @@ use DOMDocument;
 use DOMElement;
 use DOMNode;
 use DOMText;
+use PhpOffice\PhpSpreadsheet\Cell\AddressRange;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Helper\Dimension as HelperDimension;
@@ -496,7 +497,7 @@ class Ods extends BaseReader
                 // Go through every child of table element
                 $rowID = 1;
                 $tableColumnIndex = 1;
-                $this->highestDataIndex = 16384;
+                $this->highestDataIndex = AddressRange::MAX_COLUMN_INT;
                 foreach ($worksheetDataSet->childNodes as $childNode) {
                     /** @var DOMElement $childNode */
 
@@ -1291,7 +1292,7 @@ class Ods extends BaseReader
                 $columnWidth = new HelperDimension($columnWidths[$tableStyleName]);
                 $tableColumnIndex2 = $tableColumnIndex;
                 $tableColumnString = Coordinate::stringFromColumnIndex($tableColumnIndex2);
-                for ($rowRepeats2 = $rowRepeats; $rowRepeats2 > 0 && $tableColumnIndex2 <= 16384; --$rowRepeats2) {
+                for ($rowRepeats2 = $rowRepeats; $rowRepeats2 > 0 && $tableColumnIndex2 <= AddressRange::MAX_COLUMN_INT; --$rowRepeats2) {
                     if (!$this->readEmptyCells && $tableColumnIndex2 > $this->highestDataIndex) {
                         break;
                     }
@@ -1310,7 +1311,7 @@ class Ods extends BaseReader
             if ($defaultStyleName !== 'Default' && isset($this->allStyles[$defaultStyleName])) {
                 $tableColumnIndex2 = $tableColumnIndex;
                 $tableColumnString = Coordinate::stringFromColumnIndex($tableColumnIndex2);
-                for ($rowRepeats2 = $rowRepeats; $rowRepeats2 > 0 && $tableColumnIndex2 <= 16384; --$rowRepeats2) {
+                for ($rowRepeats2 = $rowRepeats; $rowRepeats2 > 0 && $tableColumnIndex2 <= AddressRange::MAX_COLUMN_INT; --$rowRepeats2) {
                     $spreadsheet->getActiveSheet()
                         ->getStyle($tableColumnString)
                         ->applyFromArray(
