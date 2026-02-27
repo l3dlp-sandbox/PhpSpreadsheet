@@ -11,6 +11,7 @@ use DOMDocument;
 use DOMElement;
 use DOMNode;
 use DOMText;
+use PhpOffice\PhpSpreadsheet\Cell\AddressRange;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Helper\Dimension as HelperDimension;
@@ -298,6 +299,8 @@ class Ods extends BaseReader
      */
     private array $allStyles;
 
+    private int $highestDataIndex;
+
     /**
      * Loads PhpSpreadsheet from file into PhpSpreadsheet instance.
      */
@@ -335,8 +338,7 @@ class Ods extends BaseReader
         $styleNs = (string) $dom->lookupNamespaceUri('style');
         $fontNs = (string) $dom->lookupNamespaceUri('fo');
 
-        $defaultStyleSet = false;
-        $automaticStyle0 = $dom->getElementsByTagNameNS($officeNs, 'styles')->item(0);
+        $automaticStyle0 = $this->readDataOnly ? null : $dom->getElementsByTagNameNS($officeNs, 'styles')->item(0);
         $automaticStyles = ($automaticStyle0 === null) ? [] : $automaticStyle0->getElementsByTagNameNS($styleNs, 'default-style');
         foreach ($automaticStyles as $automaticStyle) {
             $styleFamily = $automaticStyle->getAttributeNS($styleNs, 'family');
@@ -346,7 +348,6 @@ class Ods extends BaseReader
                     $fonts = $this->getFontStyles($textProperty, $styleNs, $fontNs);
                 }
                 if (!empty($fonts)) {
-                    $defaultStyleSet = true;
                     $spreadsheet->getDefaultStyle()
                         ->getFont()
                         ->applyFromArray($fonts);
@@ -368,7 +369,7 @@ class Ods extends BaseReader
                 if ($styleName !== '') {
                     if (!empty($fonts)) {
                         $this->allStyles[$styleName]['font'] = $fonts;
-                        if (!$defaultStyleSet && $styleName === 'Default') {
+                        if ($styleName === 'Default') {
                             $spreadsheet->getDefaultStyle()
                                 ->getFont()
                                 ->applyFromArray($fonts);
@@ -405,7 +406,7 @@ class Ods extends BaseReader
         $autoFilterReader = new AutoFilter($spreadsheet, $tableNs);
         $definedNameReader = new DefinedNames($spreadsheet, $tableNs);
         $columnWidths = [];
-        $automaticStyle0 = $dom->getElementsByTagNameNS($officeNs, 'automatic-styles')->item(0);
+        $automaticStyle0 = $this->readDataOnly ? null : $dom->getElementsByTagNameNS($officeNs, 'automatic-styles')->item(0);
         $automaticStyles = ($automaticStyle0 === null) ? [] : $automaticStyle0->getElementsByTagNameNS($styleNs, 'style');
         foreach ($automaticStyles as $automaticStyle) {
             $styleName = $automaticStyle->getAttributeNS($styleNs, 'name');
@@ -496,6 +497,7 @@ class Ods extends BaseReader
                 // Go through every child of table element
                 $rowID = 1;
                 $tableColumnIndex = 1;
+                $this->highestDataIndex = AddressRange::MAX_COLUMN_INT;
                 foreach ($worksheetDataSet->childNodes as $childNode) {
                     /** @var DOMElement $childNode */
 
@@ -534,37 +536,6 @@ class Ods extends BaseReader
                             );
 
                             break;
-                        case 'table-header-columns':
-                        case 'table-columns':
-                            $this->processTableHeaderColumns(
-                                $childNode,
-                                $tableNs,
-                                $columnWidths,
-                                $tableColumnIndex,
-                                $spreadsheet
-                            );
-
-                            break;
-                        case 'table-column-group':
-                            $this->processTableColumnGroup(
-                                $childNode,
-                                $tableNs,
-                                $columnWidths,
-                                $tableColumnIndex,
-                                $spreadsheet
-                            );
-
-                            break;
-                        case 'table-column':
-                            $this->processTableColumn(
-                                $childNode,
-                                $tableNs,
-                                $columnWidths,
-                                $tableColumnIndex,
-                                $spreadsheet
-                            );
-
-                            break;
                         case 'table-row':
                             $this->processTableRow(
                                 $childNode,
@@ -575,6 +546,43 @@ class Ods extends BaseReader
                                 $textNs,
                                 $xlinkNs,
                                 $spreadsheet
+                            );
+
+                            break;
+                        case 'table-header-columns':
+                        case 'table-columns':
+                            $this->processTableColumnHeader(
+                                $childNode,
+                                $tableNs,
+                                $columnWidths,
+                                $tableColumnIndex,
+                                $spreadsheet,
+                                $this->readEmptyCells,
+                                true
+                            );
+
+                            break;
+                        case 'table-column-group':
+                            $this->processTableColumnGroup(
+                                $childNode,
+                                $tableNs,
+                                $columnWidths,
+                                $tableColumnIndex,
+                                $spreadsheet,
+                                $this->readEmptyCells,
+                                true
+                            );
+
+                            break;
+                        case 'table-column':
+                            $this->processTableColumn(
+                                $childNode,
+                                $tableNs,
+                                $columnWidths,
+                                $tableColumnIndex,
+                                $spreadsheet,
+                                $this->readEmptyCells,
+                                true
                             );
 
                             break;
@@ -593,10 +601,94 @@ class Ods extends BaseReader
             if ($this->createBlankSheetIfNoneRead && !$sheetCreated) {
                 $spreadsheet->createSheet();
             }
+        }
+
+        foreach ($spreadsheets as $workbookData) {
+            /** @var DOMElement $workbookData */
+            $tables = $workbookData->getElementsByTagNameNS($tableNs, 'table');
+
+            $worksheetID = 0;
+            foreach ($tables as $worksheetDataSet) {
+                /** @var DOMElement $worksheetDataSet */
+                $worksheetName = $worksheetDataSet->getAttributeNS($tableNs, 'name');
+
+                // Check loadSheetsOnly
+                if (
+                    $this->loadSheetsOnly !== null
+                    && $worksheetName
+                    && !in_array($worksheetName, $this->loadSheetsOnly)
+                ) {
+                    continue;
+                }
+
+                // Create sheet
+                $spreadsheet->setActiveSheetIndex($worksheetID);
+                $highestDataColumn = $spreadsheet->getActiveSheet()->getHighestDataColumn();
+                $this->highestDataIndex = Coordinate::columnIndexFromString($highestDataColumn);
+
+                // Go through every child of table element processing column widths
+                $rowID = 1;
+                $tableColumnIndex = 1;
+                foreach ($worksheetDataSet->childNodes as $childNode) {
+                    /** @var DOMElement $childNode */
+                    if (empty($columnWidths) || $this->readEmptyCells) {
+                        break;
+                    }
+
+                    // Filter elements which are not under the "table" ns
+                    if ($childNode->namespaceURI != $tableNs) {
+                        continue;
+                    }
+
+                    $key = self::extractNodeName($childNode->nodeName);
+
+                    switch ($key) {
+                        case 'table-header-columns':
+                        case 'table-columns':
+                            $this->processTableColumnHeader(
+                                $childNode,
+                                $tableNs,
+                                $columnWidths,
+                                $tableColumnIndex,
+                                $spreadsheet,
+                                true,
+                                false
+                            );
+
+                            break;
+                        case 'table-column-group':
+                            $this->processTableColumnGroup(
+                                $childNode,
+                                $tableNs,
+                                $columnWidths,
+                                $tableColumnIndex,
+                                $spreadsheet,
+                                true,
+                                false
+                            );
+
+                            break;
+                        case 'table-column':
+                            $this->processTableColumn(
+                                $childNode,
+                                $tableNs,
+                                $columnWidths,
+                                $tableColumnIndex,
+                                $spreadsheet,
+                                true,
+                                false
+                            );
+
+                            break;
+                    }
+                }
+                ++$worksheetID;
+            }
 
             $autoFilterReader->read($workbookData);
             $definedNameReader->read($workbookData);
         }
+
         $spreadsheet->setActiveSheetIndex(0);
 
         if ($zip->locateName('settings.xml') !== false) {
@@ -1091,12 +1183,14 @@ class Ods extends BaseReader
     /**
      * @param string[] $columnWidths
      */
-    private function processTableHeaderColumns(
+    private function processTableColumnHeader(
         DOMElement $childNode,
         string $tableNs,
         array $columnWidths,
         int &$tableColumnIndex,
-        Spreadsheet $spreadsheet
+        Spreadsheet $spreadsheet,
+        bool $processWidths = true,
+        bool $processStyles = true
     ): void {
         foreach ($childNode->childNodes as $grandchildNode) {
             /** @var DOMElement $grandchildNode */
@@ -1108,7 +1202,9 @@ class Ods extends BaseReader
                         $tableNs,
                         $columnWidths,
                         $tableColumnIndex,
-                        $spreadsheet
+                        $spreadsheet,
+                        $processWidths,
+                        $processStyles
                     );
 
                     break;
@@ -1124,7 +1220,9 @@ class Ods extends BaseReader
         string $tableNs,
         array $columnWidths,
         int &$tableColumnIndex,
-        Spreadsheet $spreadsheet
+        Spreadsheet $spreadsheet,
+        bool $processWidths = true,
+        bool $processStyles = true
     ): void {
         foreach ($childNode->childNodes as $grandchildNode) {
             /** @var DOMElement $grandchildNode */
@@ -1136,18 +1234,22 @@ class Ods extends BaseReader
                         $tableNs,
                         $columnWidths,
                         $tableColumnIndex,
-                        $spreadsheet
+                        $spreadsheet,
+                        $processWidths,
+                        $processStyles
                     );
 
                     break;
                 case 'table-header-columns':
                 case 'table-columns':
-                    $this->processTableHeaderColumns(
+                    $this->processTableColumnHeader(
                         $grandchildNode,
                         $tableNs,
                         $columnWidths,
                         $tableColumnIndex,
-                        $spreadsheet
+                        $spreadsheet,
+                        $processWidths,
+                        $processStyles
                     );
 
                     break;
@@ -1157,7 +1259,9 @@ class Ods extends BaseReader
                         $tableNs,
                         $columnWidths,
                         $tableColumnIndex,
-                        $spreadsheet
+                        $spreadsheet,
+                        $processWidths,
+                        $processStyles
                     );
 
                     break;
@@ -1173,7 +1277,9 @@ class Ods extends BaseReader
         string $tableNs,
         array $columnWidths,
         int &$tableColumnIndex,
-        Spreadsheet $spreadsheet
+        Spreadsheet $spreadsheet,
+        bool $processWidths = true,
+        bool $processStyles = true
     ): void {
         if ($childNode->hasAttributeNS($tableNs, 'number-columns-repeated')) {
             $rowRepeats = (int) $childNode->getAttributeNS($tableNs, 'number-columns-repeated');
@@ -1181,15 +1287,41 @@ class Ods extends BaseReader
             $rowRepeats = 1;
         }
         $tableStyleName = $childNode->getAttributeNS($tableNs, 'style-name');
-        if (isset($columnWidths[$tableStyleName])) {
-            $columnWidth = new HelperDimension($columnWidths[$tableStyleName]);
-            $tableColumnString = Coordinate::stringFromColumnIndex($tableColumnIndex);
-            for ($rowRepeats2 = $rowRepeats; $rowRepeats2 > 0; --$rowRepeats2) {
-                /** @var string $tableColumnString */
-                $spreadsheet->getActiveSheet()
-                    ->getColumnDimension($tableColumnString)
-                    ->setWidth($columnWidth->toUnit('cm'), 'cm');
-                StringHelper::stringIncrement($tableColumnString);
+        if ($processWidths) {
+            if (isset($columnWidths[$tableStyleName])) {
+                $columnWidth = new HelperDimension($columnWidths[$tableStyleName]);
+                $tableColumnIndex2 = $tableColumnIndex;
+                $tableColumnString = Coordinate::stringFromColumnIndex($tableColumnIndex2);
+                for ($rowRepeats2 = $rowRepeats; $rowRepeats2 > 0 && $tableColumnIndex2 <= AddressRange::MAX_COLUMN_INT; --$rowRepeats2) {
+                    if (!$this->readEmptyCells && $tableColumnIndex2 > $this->highestDataIndex) {
+                        break;
+                    }
+                    $spreadsheet->getActiveSheet()
+                        ->getColumnDimension($tableColumnString)
+                        ->setWidth($columnWidth->toUnit('cm'), 'cm');
+                    StringHelper::stringIncrement(
+                        $tableColumnString
+                    );
+                    ++$tableColumnIndex2;
+                }
+            }
+        }
+        if ($processStyles) {
+            $defaultStyleName = $childNode->getAttributeNS($tableNs, 'default-cell-style-name');
+            if ($defaultStyleName !== 'Default' && isset($this->allStyles[$defaultStyleName])) {
+                $tableColumnIndex2 = $tableColumnIndex;
+                $tableColumnString = Coordinate::stringFromColumnIndex($tableColumnIndex2);
+                for ($rowRepeats2 = $rowRepeats; $rowRepeats2 > 0 && $tableColumnIndex2 <= AddressRange::MAX_COLUMN_INT; --$rowRepeats2) {
+                    $spreadsheet->getActiveSheet()
+                        ->getStyle($tableColumnString)
+                        ->applyFromArray(
+                            $this->allStyles[$defaultStyleName]
+                        );
+                    StringHelper::stringIncrement(
+                        $tableColumnString
+                    );
+                    ++$tableColumnIndex2;
+                }
             }
         }
         $tableColumnIndex += $rowRepeats;

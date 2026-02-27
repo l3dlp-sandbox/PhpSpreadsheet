@@ -13,6 +13,7 @@ class NestedTableRowTest extends TestCase
     {
         $infile = 'tests/data/Reader/Ods/issue.4528.ods';
         $reader = new OdsReader();
+        $reader->setReadDataOnly(true)->setReadEmptyCells(false);
         $spreadsheet = $reader->load($infile);
         $sheet = $spreadsheet->getActiveSheet();
         self::assertSame('Atterissage', $sheet->getCell('AS1')->getValue());
@@ -26,6 +27,7 @@ class NestedTableRowTest extends TestCase
     {
         $infile = 'tests/data/Reader/Ods/issue.2507.ods';
         $reader = new OdsReader();
+        $reader->setReadDataOnly(true)->setReadEmptyCells(false);
         $spreadsheet = $reader->load($infile);
         $sheet = $spreadsheet->getActiveSheet();
         $values = $sheet->rangeToArray('B3:C7', null, false, false);

@@ -7,9 +7,6 @@ namespace PhpOffice\PhpSpreadsheetTests\Reader\Ods;
 use PhpOffice\PhpSpreadsheet\Reader\Ods;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @TODO The class doesn't read the bold/italic/underline properties (rich text)
- */
 class CurrencyTest extends TestCase
 {
     private const ODS_CURRENCY_FILE = 'tests/data/Reader/Ods/currency4.ods';

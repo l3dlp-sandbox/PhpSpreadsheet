@@ -8,9 +8,6 @@ use PhpOffice\PhpSpreadsheet\Reader\Exception as ReaderException;
 use PhpOffice\PhpSpreadsheet\Reader\Ods;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @TODO The class doesn't read the bold/italic/underline properties (rich text)
- */
 class OdsInfoTest extends TestCase
 {
     public function testReadFileProperties(): void
