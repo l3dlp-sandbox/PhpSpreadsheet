@@ -890,7 +890,7 @@ class Xlsx extends BaseReader
                                 $sheetViewOptions->load($this->readDataOnly, $this->styleReader);
 
                                 (new ColumnAndRowAttributes($docSheet, $xmlSheetNS))
-                                    ->load($this->getReadFilter(), $this->readDataOnly, $this->ignoreRowsWithNoCells);
+                                    ->load($this->readFilter, $this->readDataOnly, $this->ignoreRowsWithNoCells);
                             }
 
                             $holdSelectedCells = $docSheet->getSelectedCells();
@@ -1931,7 +1931,7 @@ class Xlsx extends BaseReader
                 // Read cell?
                 $coordinates = Coordinate::coordinateFromString($r);
 
-                if (!$this->getReadFilter()->readCell($coordinates[0], (int) $coordinates[1], $docSheet->getTitle())) {
+                if (!$this->readFilter->readCell($coordinates[0], (int) $coordinates[1], $docSheet->getTitle())) {
                     // Normally, just testing for the f attribute should identify this cell as containing a formula
                     // that we need to read, even though it is outside of the filter range, in case it is a shared formula.
                     // But in some cases, this attribute isn't set; so we need to delve a level deeper and look at
@@ -2403,7 +2403,7 @@ class Xlsx extends BaseReader
     {
         $returnValue = null;
         $protectKey = $protection[$key];
-        if (!empty($protectKey)) {
+        if (isset($protectKey)) {
             $protectKey = (string) $protectKey;
             $returnValue = $protectKey !== 'false' && (bool) $protectKey;
         }
@@ -2661,6 +2661,8 @@ class Xlsx extends BaseReader
         $formulaRange = (string) ($attributes['formulaRange'] ?? '');
         $twoDigitTextYear = (string) ($attributes['twoDigitTextYear'] ?? '');
         $evalError = (string) ($attributes['evalError'] ?? '');
+        $attributes2 = self::getAttributes($xml, Namespaces::MISLEADING_FORMAT);
+        $misleadingFormat = (string) ($attributes2['misleadingFormat'] ?? '');
         if (!empty($sqref)) {
             $explodedSqref = explode(' ', $sqref);
             $pattern1 = '/^([A-Z]{1,3})([0-9]{1,7})(:([A-Z]{1,3})([0-9]{1,7}))?$/';
@@ -2682,19 +2684,34 @@ class Xlsx extends BaseReader
                                 continue;
                             }
                             if ($numberStoredAsText === '1') {
-                                $sheet->getCell("$col$row")->getIgnoredErrors()->setNumberStoredAsText(true);
+                                $sheet->getCell("$col$row")
+                                    ->getIgnoredErrors()
+                                    ->setNumberStoredAsText(true);
                             }
                             if ($formula === '1') {
-                                $sheet->getCell("$col$row")->getIgnoredErrors()->setFormula(true);
+                                $sheet->getCell("$col$row")
+                                    ->getIgnoredErrors()
+                                    ->setFormula(true);
                             }
                             if ($formulaRange === '1') {
-                                $sheet->getCell("$col$row")->getIgnoredErrors()->setFormulaRange(true);
+                                $sheet->getCell("$col$row")
+                                    ->getIgnoredErrors()
+                                    ->setFormulaRange(true);
                             }
                             if ($twoDigitTextYear === '1') {
-                                $sheet->getCell("$col$row")->getIgnoredErrors()->setTwoDigitTextYear(true);
+                                $sheet->getCell("$col$row")
+                                    ->getIgnoredErrors()
+                                    ->setTwoDigitTextYear(true);
                             }
                             if ($evalError === '1') {
-                                $sheet->getCell("$col$row")->getIgnoredErrors()->setEvalError(true);
+                                $sheet->getCell("$col$row")
+                                    ->getIgnoredErrors()
+                                    ->setEvalError(true);
+                            }
+                            if ($misleadingFormat === '1') {
+                                $sheet->getCell("$col$row")
+                                    ->getIgnoredErrors()
+                                    ->setMisleadingFormat(true);
                             }
                         }
                     }
