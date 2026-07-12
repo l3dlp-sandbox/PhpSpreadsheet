@@ -20,6 +20,7 @@ class ServerTest extends TestCase
     public static function setUpBeforeClass(): void
     {
         $commandLine = 'php -S ' . self::SERVER . ' -t ' . __DIR__;
+        var_dump($commandLine);
 
         self::$httpServer = Process::fromShellCommandline($commandLine);
         self::$httpServer->start();
