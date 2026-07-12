@@ -7,7 +7,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Process\Process;
 
-class ServerTestx extends TestCase
+class ServerTest extends TestCase
 {
     private static Process $httpServer;
 
@@ -35,6 +35,7 @@ class ServerTestx extends TestCase
 
     public function testServer(): void
     {
+        var_dump(ini_get('allow_url_fopen'));
         self::assertSame(self::NEWVALUE, file_get_contents(self::DIRECT));
         self::assertSame(self::NEWVALUE, file_get_contents(self::REDIRECT));
     }
