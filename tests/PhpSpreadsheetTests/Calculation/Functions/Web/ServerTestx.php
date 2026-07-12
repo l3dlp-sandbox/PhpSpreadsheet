@@ -7,7 +7,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Process\Process;
 
-class ServerTest extends TestCase
+class ServerTestx extends TestCase
 {
     private static Process $httpServer;
 
