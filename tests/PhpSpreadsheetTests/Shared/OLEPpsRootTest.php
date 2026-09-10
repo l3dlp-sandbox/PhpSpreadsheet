@@ -202,7 +202,7 @@ class OLEPpsRootTest extends TestCase
             $ole->read($path);
             self::assertSame(2, $ole->ppsTotal());
             self::assertTrue($ole->isFile(1));
-            self::assertSame($data, self::getDataByName($ole, 'BoundaryStream'));
+            self::assertSame($data, $ole->getDataByName('BoundaryStream'));
         } finally {
             fclose($file);
         }
@@ -216,16 +216,5 @@ class OLEPpsRootTest extends TestCase
         self::assertIsInt($value['value']);
 
         return $value['value'];
-    }
-
-    private static function getDataByName(OLE $ole, string $name): string
-    {
-        foreach ($ole->_list as $index => $pps) {
-            if ($pps->Type === OLE::OLE_PPS_TYPE_FILE && $pps->Name === $name) {
-                return $ole->getData($index, 0, $pps->Size);
-            }
-        }
-
-        self::fail("OLE stream '$name' was not found.");
     }
 }
