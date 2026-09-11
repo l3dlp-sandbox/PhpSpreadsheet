@@ -5,6 +5,8 @@ uses the Microsoft Office Agile encryption format, so the encrypted file can
 be opened by supported versions of Microsoft Excel after the password is
 entered.
 
+Optional Php extension `openssl` must be enabled in order to make use of this functionality.
+
 ## Reading an encrypted `.xlsx` file
 
 Create an Xlsx reader, set its password, and then load the file:
@@ -57,7 +59,7 @@ separate interoperability contract.
   not supported by this feature.
 - Workbook, worksheet, and cell protection are separate features. They help
   prevent editing; they do not conceal workbook contents. See the
-  [security recipe](./recipes.md#security).
+  [security recipe](./recipes.md#setting-security-on-a-spreadsheet).
 - Encryption prevents opening the file without the password. It does not
   prevent copying, screenshots, or access after a successful open.
 
