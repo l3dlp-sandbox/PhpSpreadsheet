@@ -339,11 +339,7 @@ class Ods extends BaseReader
         // Styles
 
         $this->allStyles = $this->numberFormats = [];
-        $dom = new DOMDocument('1.01', 'UTF-8');
-        $dom->loadXML(
-            $this->getSecurityScannerOrThrow()
-                ->scan($zip->getFromName('styles.xml'))
-        );
+        $dom = $this->loadDom('styles.xml', $zip);
         $officeNs = (string) $dom->lookupNamespaceUri('office');
         $styleNs = (string) $dom->lookupNamespaceUri('style');
         $fontNs = (string) $dom->lookupNamespaceUri('fo');
@@ -409,11 +405,7 @@ class Ods extends BaseReader
 
         // Main Content
 
-        $dom = new DOMDocument('1.01', 'UTF-8');
-        $dom->loadXML(
-            $this->getSecurityScannerOrThrow()
-                ->scan($zip->getFromName(self::INITIAL_FILE))
-        );
+        $dom = $this->loadDom(self::INITIAL_FILE, $zip);
 
         $pageSettings->readStyleCrossReferences($dom);
 
@@ -1428,11 +1420,7 @@ class Ods extends BaseReader
 
     private function processSettings(ZipArchive $zip, Spreadsheet $spreadsheet): void
     {
-        $dom = new DOMDocument('1.01', 'UTF-8');
-        $dom->loadXML(
-            $this->getSecurityScannerOrThrow()
-                ->scan($zip->getFromName('settings.xml'))
-        );
+        $dom = $this->loadDom('settings.xml', $zip);
         $configNs = (string) $dom->lookupNamespaceUri('config');
         $officeNs = (string) $dom->lookupNamespaceUri('office');
         $settings = $dom->getElementsByTagNameNS($officeNs, 'settings')
@@ -1868,5 +1856,32 @@ class Ods extends BaseReader
                 $this->numberFormats[$styleName] = str_repeat('0', $minIntegerDigits);
             }
         }
+    }
+
+    private function loadDom(string $file, ZipArchive $zip): DOMDocument
+    {
+        $dom = new DOMDocument('1.01', 'UTF-8');
+        $orig = false;
+
+        try {
+            $orig = libxml_use_internal_errors(true);
+            $result = $dom->loadXML(
+                $this->getSecurityScannerOrThrow()
+                    ->scan($zip->getFromName($file))
+            );
+            if ($result === false) {
+                $fatal = false;
+                foreach (libxml_get_errors() as $err) {
+                    if ($err->level === LIBXML_ERR_FATAL) {
+                        throw new Exception($err->message);
+                    }
+                }
+            }
+        } finally {
+            libxml_clear_errors();
+            libxml_use_internal_errors($orig);
+        }
+
+        return $dom;
     }
 }
