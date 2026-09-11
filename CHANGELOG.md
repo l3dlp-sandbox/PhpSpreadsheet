@@ -13,7 +13,7 @@ Some earlier branches remain supported and security fixes are applied to them; i
 
 ### Added
 
-- XLSX password-to-open encryption and decryption using Office Agile encryption. [Issue #3878](https://github.com/PHPOffice/PhpSpreadsheet/issues/3878) [PR #4975](https://github.com/PHPOffice/PhpSpreadsheet/pull/4975)
+- XLSX password-to-open encryption and decryption using Office Agile encryption. [Issue #3878](https://github.com/PHPOffice/PhpSpreadsheet/issues/3878) [PR #4975](https://github.com/PHPOffice/PhpSpreadsheet/pull/4975) [PR #4988](https://github.com/PHPOffice/PhpSpreadsheet/pull/4988)
 - Support for Excel sparklines (line, column, and win/loss) in Xlsx reader and writer. [Issue #4941](https://github.com/PHPOffice/PhpSpreadsheet/issues/4941)
 - Read-only object model for Pivot Tables. Existing pivot tables in an Xlsx file are now parsed into `Worksheet\PivotTable\PivotTable` objects (name, location, source cache definition, and row/column/page/data field layout), accessible via `Worksheet::getPivotTableCollection()` / `getPivotTableByName()`. Pivot tables (their tables, caches and records) are now also preserved through an Xlsx load/save round-trip instead of being silently dropped. [Issue #4534](https://github.com/PHPOffice/PhpSpreadsheet/issues/4534)
 
@@ -47,6 +47,8 @@ Some earlier branches remain supported and security fixes are applied to them; i
 - Correct incomplete gamma convergence for GAMMA.DIST/CHISQ.DIST family (wrong once the series argument reached ~32). [PR #4945](https://github.com/PHPOffice/PhpSpreadsheet/pull/4945)
 - Fix problem with VLOOKUP and whole-column ranges. [Issue #4969](https://github.com/PHPOffice/PhpSpreadsheet/issues/4969) [PR #4967](https://github.com/PHPOffice/PhpSpreadsheet/pull/4967)
 - Problem with Xlsx Writer and header-row table. [PR #4968](https://github.com/PHPOffice/PhpSpreadsheet/pull/4968)
+- Throw when Ods Reader encounters invalid Xml. [PR #4986](https://github.com/PHPOffice/PhpSpreadsheet/pull/4986)
+- Update Sheetname in Charts when Sheetname changes. [Issue #744](https://github.com/PHPOffice/PhpSpreadsheet/issues/744) [PR #4984](https://github.com/PHPOffice/PhpSpreadsheet/pull/4984)
 
 ## 2026-07-12 - 5.9.0
 
